@@ -1,0 +1,8 @@
+/node_modules
+/dist
+
+# Jest coverage files
+coverage/
+
+.vscode
+index-test.js
