@@ -1,6 +1,7 @@
 {
   "name": "niagara-js",
   "version": "0.0.1",
+  "private": true,
   "description": "Core Obix Niagara functions",
   "author": "Adam Zimmerman",
   "homepage": "https://github.com/Energy-IQ-Group-LLC/niagara-js#readme",
