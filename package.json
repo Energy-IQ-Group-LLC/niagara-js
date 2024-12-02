@@ -2,15 +2,11 @@
   "name": "niagara-js",
   "version": "0.0.1",
   "private": true,
-  "description": "Core Obix Niagara functions",
+  "description": "Core Niagara functions",
   "author": "Adam Zimmerman",
-  "homepage": "https://github.com/Energy-IQ-Group-LLC/niagara-js#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Energy-IQ-Group-LLC/niagara-js.git"
-  },
-  "bugs": {
-    "url": "https://github.com/Energy-IQ-Group-LLC/niagara-js/issues"
   },
   "keywords": [
     "Tridium",
