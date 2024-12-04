@@ -101,7 +101,7 @@ export class BQLInstance extends BaseClass {
 
   /**
    * @constructor
-   * @param {import('./app.js').AxiosInstanceConfig} axiosInstanceConfig - The configuration object for initializing the instance.
+   * @param {import('@root/app.js').AxiosInstanceConfig} axiosInstanceConfig - The configuration object for initializing the instance.
    */
   constructor(axiosInstanceConfig) {
     super(axiosInstanceConfig, true);
