@@ -68,29 +68,22 @@ function createDefaultAxiosInstance({ url, username, password, sessionCookie, ti
   if (sessionCookie) cookieJar.setCookieSync(sessionCookie, url);
   if (username && password) axiosInstance.defaults.auth = { username, password };
 
-  configureCookieInterceptors(axiosInstance);
-
-  return axiosInstance;
-}
-
-/**
- * @param {import('axios').AxiosInstance} axiosInstance
- */
-function configureCookieInterceptors(axiosInstance) {
-  const cookieJar = axiosInstance.cookieJar;
-
+  //#region Set up cookie interceptors
   axiosInstance.interceptors.response.use((response) => {
     const setCookieHeader = response.headers['set-cookie'];
     if (setCookieHeader) {
       setCookieHeader.forEach((cookie) => {
-        if (response.config.baseURL) cookieJar?.setCookieSync(cookie, response.config.baseURL);
+        if (response.config.baseURL) cookieJar.setCookieSync(cookie, response.config.baseURL);
       });
     }
     return response;
   });
 
   axiosInstance.interceptors.request.use((request) => {
-    if (request.baseURL) request.headers.Cookie = cookieJar?.getCookieStringSync(request.baseURL);
+    if (request.baseURL) request.headers.Cookie = cookieJar.getCookieStringSync(request.baseURL);
     return request;
   });
+  //#endregion
+
+  return axiosInstance;
 }
