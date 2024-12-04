@@ -19,11 +19,14 @@
   "files": [
     "dist"
   ],
-  "main": "./dist/niagara-js.umd.js",
+  "main": "./dist/niagara-js.cjs.js",
   "module": "./dist/niagara-js.es.js",
   "exports": {
     "import": "./dist/niagara-js.es.js",
-    "require": "./dist/niagara-js.umd.js"
+    "require": "./dist/niagara-js.cjs.js"
+  },
+  "engines": {
+    "node": ">=16"
   },
   "scripts": {
     "build": "vite build",
