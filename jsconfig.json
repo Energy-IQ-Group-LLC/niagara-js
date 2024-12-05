@@ -1,12 +1,9 @@
 {
   "compilerOptions": {
-    "allowJs": true,
     "checkJs": true,
-    "forceConsistentCasingInFileNames": true,
+    "strict": true,
     "module": "node16",
     "moduleResolution": "node16",
-    "skipLibCheck": true,
-    "strict": true,
     "resolveJsonModule": true,
     "paths": {
       "@/*": ["./src/*"], // Alias '@' to the 'src' directory
