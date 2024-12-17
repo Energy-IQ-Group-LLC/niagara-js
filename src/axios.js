@@ -2,14 +2,16 @@ import axios from 'axios';
 import https from 'https';
 import { CookieJar } from 'tough-cookie';
 import { xml2js } from 'xml-js';
-import { BQLHTTPError, HTTPError } from '@/errors.js';
-import { parseError } from '@/parsers/errors.js';
+import { BQLHTTPError, HTTPError } from './errors.js';
+import { parseError } from './obix/parsers/errors.js';
+import { stripTrailingSlash } from './helpers.js';
 
 /**
- * @param {import('@root/app.js').AxiosInstanceConfig} instanceConfig - The configuration for creating the Axios instance.
+ * @param {AxiosInstanceConfig} instanceConfig - The configuration for creating the Axios instance.
  */
-export function createObixInstance(instanceConfig) {
-  const axiosInstance = createDefaultAxiosInstance(instanceConfig);
+export function createObixAxiosInstance(instanceConfig) {
+  const stripedUrl = stripTrailingSlash(instanceConfig.url);
+  const axiosInstance = createDefaultAxiosInstance({ ...instanceConfig, url: `${stripedUrl}/obix/` });
 
   axiosInstance.defaults.transformResponse = [
     function (data) {
@@ -35,9 +37,9 @@ export function createObixInstance(instanceConfig) {
 }
 
 /**
- * @param {import('@root/app.js').AxiosInstanceConfig} instanceConfig - The configuration for creating the Axios instance.
+ * @param {AxiosInstanceConfig} instanceConfig - The configuration for creating the Axios instance.
  */
-export function createBQLInstance(instanceConfig) {
+export function createBQLAxiosInstance(instanceConfig) {
   const axiosInstance = createDefaultAxiosInstance(instanceConfig);
 
   axiosInstance.interceptors.response.use(
@@ -53,7 +55,7 @@ export function createBQLInstance(instanceConfig) {
 }
 
 /**
- * @param {import('@root/app.js').AxiosInstanceConfig} instance - The configuration for creating the Axios instance.
+ * @param {AxiosInstanceConfig} instance - The configuration for creating the Axios instance.
  */
 function createDefaultAxiosInstance({ url, username, password, sessionCookie, timeout = 5000 }) {
   const axiosInstance = axios.create({

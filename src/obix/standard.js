@@ -1,4 +1,4 @@
-import { parseValueType } from '../parsers/values.js';
+import { parseValueType } from './parsers/values.js';
 import { stripPaths, replaceSpecialChars } from '../helpers.js';
 
 export class StandardRequestInstance {

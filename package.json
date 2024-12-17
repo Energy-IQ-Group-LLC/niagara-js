@@ -16,21 +16,16 @@
   ],
   "license": "ISC",
   "type": "module",
-  "files": [
-    "dist"
-  ],
-  "main": "./dist/niagara-js.cjs.js",
-  "module": "./dist/niagara-js.es.js",
+  "main": "index.js",
+  "module": "index.js",
   "exports": {
-    "import": "./dist/niagara-js.es.js",
-    "require": "./dist/niagara-js.cjs.js"
+    ".": "./index.js",
+    "./auth": "./src/auth.js"
   },
   "engines": {
     "node": ">=18"
   },
   "scripts": {
-    "build": "vite build",
-    "watch": "npm run build -- --watch",
     "major": "npm version major",
     "minor": "npm version minor",
     "patch": "npm version patch",
@@ -40,9 +35,9 @@
   },
   "dependencies": {
     "axios": "^1.6.2",
-    "cheerio": "^1.0.0-rc.12",
     "dayjs": "^1.11.9",
     "jsdom": "^25.0.1",
+    "papaparse": "^5.4.1",
     "tough-cookie": "^5.0.0",
     "xml-js": "^1.6.11"
   },
@@ -52,8 +47,6 @@
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
     "jest": "^29.6.2",
-    "prettier": "^2.8.1",
-    "vite": "^6.0.2",
-    "vite-jsconfig-paths": "^2.0.1"
+    "prettier": "^2.8.1"
   }
 }

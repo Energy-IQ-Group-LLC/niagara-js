@@ -1,4 +1,4 @@
-import { buildOutputList } from '../parsers/values.js';
+import { buildOutputList } from './parsers/values.js';
 import { stripPaths, makeArray, replaceSpecialChars } from '../helpers.js';
 
 export class BatchRequestInstance {
@@ -7,26 +7,36 @@ export class BatchRequestInstance {
     this.axiosInstance = axiosInstance;
   }
 
+  /**
+   * @param {Object} param
+   * @param {Obix.Batch.RequestItem | Obix.Batch.RequestItem[]} param.batch
+   */
   async batchRequest({ batch }) {
     // Why? the response doesn't return the path for batch writes, so we much create an array of them to populate the paths in the output
+    /** @type {string[]} */
     const writeActionPaths = [];
+    /** @type {string[]} */
+    const batchUris = [];
+
     const baseURL = this.axiosInstance.defaults.baseURL;
-    batch = makeArray(batch);
-    const { inputErrors, filteredBatch } = this.#filterInvalidBatchInputs(batch);
+
+    const batchArray = makeArray(batch);
+    const { inputErrors, filteredBatch } = this.#filterInvalidBatchInputs(batchArray);
+
     filteredBatch.forEach((obj) => {
       const isRead = obj.action == 'read';
       obj.path = stripPaths(obj.path)[0];
       if (!isRead) writeActionPaths.push(obj.path);
-      obj.bodyURI = `
+      batchUris.push(`
       <uri is="obix:${isRead ? 'Read' : 'Invoke'}" val="${baseURL}config/${obj.path}/${isRead ? 'out' : 'set'}/" >
         ${obj.value != undefined ? `<real name="in" val="${replaceSpecialChars(obj.value)}" />` : ''}
-      </uri>`;
+      </uri>`);
     });
 
     const { data } = await this.axiosInstance.post(
       `batch`,
       `<list>
-        ${filteredBatch.map((obj) => obj.bodyURI).join('')}
+        ${batchUris.join('')}
       </list>`
     );
 
@@ -38,18 +48,25 @@ export class BatchRequestInstance {
     return [...inputErrors, ...errorOutputList, ...writeOutputList, ...readOutputList];
   }
 
+  /**
+   * @param {Obix.Batch.RequestItem[]} batch
+   */
   #filterInvalidBatchInputs(batch) {
+    /**
+     * @type {Obix.Batch.InvalidRequestItem[]}
+     */
     const inputErrors = [];
-    const errorActions = (objTemp, reason) => {
-      delete objTemp.action;
+
+    const errorActions = (/** @type {Obix.Batch.RequestItem} */ objTemp, /** @type {string} */ reason) => {
       inputErrors.push({ ...objTemp, error: true, reason });
       return false;
     };
+
     const filteredBatch = batch.filter((obj) => {
       const { path, action, value } = obj;
       if (!path && !action) {
         return errorActions(
-          {},
+          obj,
           `Invalid batch input format, should be formatted as: [{ path: 'test/path', action: 'read' || 'write', value: 'set value if "action" is write' }]`
         );
       } else if (!path) {

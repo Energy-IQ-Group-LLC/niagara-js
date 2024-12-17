@@ -1,5 +1,7 @@
-import { PathError, InvalidTypeError } from '../errors';
+import { PathError, InvalidTypeError } from '../../errors.js';
 
+// FIXME: fix typing for error payload
+// @ts-ignore
 export const parseError = (error) => {
   const errorDisplay = error?._attributes?.display;
   const errorReason = error?._attributes?.is;

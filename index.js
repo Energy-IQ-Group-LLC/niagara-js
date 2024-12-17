@@ -1,119 +1,71 @@
-import { createBQLInstance, createObixInstance } from './src/axios.js';
-
-// Obix Imports
-import { RawRequestInstance } from './src/requests/raw.js';
-import { HistoryRequestInstance } from './src/requests/history.js';
-import { BatchRequestInstance } from './src/requests/batch.js';
-import { StandardRequestInstance } from './src/requests/standard.js';
-import { WatcherRequestInstance } from './src/requests/watcher.js';
-
+import { createBQLAxiosInstance, createObixAxiosInstance } from './src/axios.js';
 // BQL Imports
-import { BQLQueryInstance } from './src/requests/bql.js';
+import { BQLQueryInstance } from './src/bql/query.js';
+// Obix Imports
+import { BatchRequestInstance } from './src/obix/batch.js';
+import { HistoryRequestInstance } from './src/obix/history.js';
+import { RawRequestInstance } from './src/obix/raw.js';
+import { StandardRequestInstance } from './src/obix/standard.js';
+import { WatcherRequestInstance } from './src/obix/watcher.js';
 
-// export { digestAuthLogin } from './src/digestAuth.js';
-
-class BaseClass {
+export class NiagaraConnector {
   /**
    * @constructor
-   * @param {import('./app.js').AxiosInstanceConfig} axiosInstanceConfig
-   * @param {boolean} [isBQL]
+   * @param {AxiosInstanceConfig} axiosInstanceConfig
    */
-  constructor(axiosInstanceConfig, isBQL = false) {
-    this.axiosInstance = isBQL ? createBQLInstance(axiosInstanceConfig) : createObixInstance(axiosInstanceConfig);
+  constructor(axiosInstanceConfig) {
+    this.bql = generateBQLFunctions(axiosInstanceConfig);
+    this.obix = generateObixFunctions(axiosInstanceConfig);
   }
 
   /**
-   * @param {string} username
-   * @param {string} password
+   * @param {string | import("tough-cookie").Cookie} sessionCookie
    */
-  updateCredentials(username, password) {
-    this.axiosInstance.defaults.auth = { username, password };
+  updateSessionCookie(sessionCookie) {
+    if (this.bql.axiosInstance.defaults.baseURL) {
+      this.bql.axiosInstance.cookieJar?.setCookieSync(sessionCookie, this.bql.axiosInstance.defaults.baseURL);
+    }
+    if (this.obix.axiosInstance.defaults.baseURL) {
+      this.obix.axiosInstance.cookieJar?.setCookieSync(sessionCookie, this.obix.axiosInstance.defaults.baseURL);
+    }
   }
 }
 
-// export class ObixInstance extends BaseClass {
-//   #historyRequestInstance;
-//   #batchRequestInstance;
-//   #standardRequestInstance;
-//   #watcherRequestInstance;
+/**
+ * @param {AxiosInstanceConfig} axiosInstanceConfig
+ */
+function generateBQLFunctions(axiosInstanceConfig) {
+  const axiosInstance = createBQLAxiosInstance(axiosInstanceConfig);
 
-//   /**
-//    * @constructor
-//    * @param {Object} config - The configuration object for initializing the instance.
-//    * @param {string} config.url - The base URL for requests.
-//    * @param {string} config.username - The username for authentication.
-//    * @param {string} config.password - The password for authentication.
-//    * @param {number} [config.timeout] - The request timeout in milliseconds.
-//    */
-//   constructor({ url, username, password, timeout }) {
-//     super({ url, username, password, timeout, isBQL: false });
-//     this.#historyRequestInstance = new HistoryRequestInstance(this.axiosInstance);
-//     this.#batchRequestInstance = new BatchRequestInstance(this.axiosInstance);
-//     this.#standardRequestInstance = new StandardRequestInstance(this.axiosInstance);
-//     this.#watcherRequestInstance = new WatcherRequestInstance(this.axiosInstance);
-//   }
+  const bqlQueryInstance = new BQLQueryInstance(axiosInstance);
 
-//   async post(path, payload, axiosConfig) {
-//     return this.#rawRequestInstance.post(path, payload);
-//   }
-//   async get(path, axiosConfig) {
-//     return this.#rawRequestInstance.get(path);
-//   }
+  return {
+    axiosInstance,
+    query: bqlQueryInstance.bqlQuery.bind(bqlQueryInstance),
+  };
+}
 
-//   async history(path, query, axiosConfig) {
-//     return this.#historyRequestInstance.historyRequest(path, query);
-//   }
+/**
+ * @param {AxiosInstanceConfig} axiosInstanceConfig
+ */
+function generateObixFunctions(axiosInstanceConfig) {
+  const axiosInstance = createObixAxiosInstance(axiosInstanceConfig);
 
-//   async batch(batch, axiosConfig) {
-//     return this.#batchRequestInstance.batchRequest(batch, axiosConfig);
-//   }
+  const batchRequestInstance = new BatchRequestInstance(axiosInstance);
+  const historyRequestInstance = new HistoryRequestInstance(axiosInstance);
+  const rawRequestInstance = new RawRequestInstance(axiosInstance);
+  const standardRequestInstance = new StandardRequestInstance(axiosInstance);
+  const watcherRequestInstance = new WatcherRequestInstance(axiosInstance);
 
-//   /**
-//    * @param {string} path
-//    * @param {import('axios').AxiosRequestConfig} [axiosConfig]
-//    */
-//   async read(path, axiosConfig) {
-//     return this.#standardRequestInstance.readRequest(path, axiosConfig);
-//   }
-//   /**
-//    * @param {string} path
-//    * @param {string} value
-//    * @param {import('axios').AxiosRequestConfig} [axiosConfig]
-//    */
-//   async write(path, value, axiosConfig) {
-//     return this.#standardRequestInstance.writeRequest(path, value, axiosConfig);
-//   }
-
-//   async watcherCreate() {
-//     return this.#watcherRequestInstance.watcherCreate();
-//   }
-//   /**
-//    * @param {string | number} leaseTime
-//    * @param {import('axios').AxiosRequestConfig} [axiosConfig]
-//    */
-//   async watcherUpdateDefaultLease(leaseTime, axiosConfig) {
-//     return this.#watcherRequestInstance.watcherUpdateDefaultLease(leaseTime, axiosConfig);
-//   }
-// }
-
-export class BQLInstance extends BaseClass {
-  #bqlQueryInstance;
-
-  /**
-   * @constructor
-   * @param {import('@root/app.js').AxiosInstanceConfig} axiosInstanceConfig - The configuration object for initializing the instance.
-   */
-  constructor(axiosInstanceConfig) {
-    super(axiosInstanceConfig, true);
-    this.#bqlQueryInstance = new BQLQueryInstance(this.axiosInstance);
-  }
-
-  /**
-   * @param {Object} obj
-   * @param {string} obj.query
-   * @param {import('axios').AxiosRequestConfig} [axiosConfig]
-   */
-  async query({ query }, axiosConfig) {
-    return this.#bqlQueryInstance.bqlQuery({ query }, axiosConfig);
-  }
+  return {
+    axiosInstance,
+    batch: batchRequestInstance.batchRequest.bind(batchRequestInstance),
+    history: historyRequestInstance.historyRequest.bind(historyRequestInstance),
+    get: rawRequestInstance.get.bind(rawRequestInstance),
+    post: rawRequestInstance.post.bind(rawRequestInstance),
+    read: standardRequestInstance.readRequest.bind(standardRequestInstance),
+    write: standardRequestInstance.writeRequest.bind(standardRequestInstance),
+    watcherCreate: watcherRequestInstance.watcherCreate.bind(watcherRequestInstance),
+    watcherUpdateDefaultLease: watcherRequestInstance.watcherUpdateDefaultLease.bind(watcherRequestInstance),
+  };
 }

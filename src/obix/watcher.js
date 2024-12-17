@@ -1,5 +1,5 @@
 import { stripPaths, replaceSpecialChars } from '../helpers.js';
-import { buildOutputList } from '../parsers/values.js';
+import { buildOutputList } from './parsers/values.js';
 import { UnknownTypeError } from '../errors.js';
 
 export class WatcherRequestInstance {

@@ -1,18 +1,16 @@
 import dayjs from 'dayjs';
-// @ts-ignore
-import utc from 'dayjs/plugin/utc';
-// @ts-ignore
-import timezone from 'dayjs/plugin/timezone'; // dependent on utc plugin
-// @ts-ignore
-import advanced from 'dayjs/plugin/advancedFormat';
-// @ts-ignore
-import localizedFormat from 'dayjs/plugin/localizedFormat';
+import advancedFormat from 'dayjs/plugin/advancedFormat.js';
+import localizedFormat from 'dayjs/plugin/localizedFormat.js';
+import timezone from 'dayjs/plugin/timezone.js'; // dependent on utc plugin
+import utc from 'dayjs/plugin/utc.js';
+
+// Order matters here
 dayjs.extend(timezone);
 dayjs.extend(utc);
-dayjs.extend(advanced);
+dayjs.extend(advancedFormat);
 dayjs.extend(localizedFormat);
 
-import { stripPaths, makeArray } from '../helpers.js';
+import { makeArray, stripPaths } from '../helpers.js';
 
 /**
  * @typedef {Object} QueryObject

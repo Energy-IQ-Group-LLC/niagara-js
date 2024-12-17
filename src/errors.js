@@ -1,7 +1,5 @@
-import { AxiosError } from 'axios';
-
 export class HTTPError extends Error {
-  /** @param {AxiosError} error */
+  /** @param {import('axios').AxiosError} error */
   constructor(error) {
     super(error.message);
     this.name = 'HTTPError';
@@ -73,7 +71,7 @@ export class UnknownTypeError extends Error {
 }
 
 export class BQLHTTPError extends Error {
-  /** @param {AxiosError} error */
+  /** @param {import('axios').AxiosError} error */
   constructor(error) {
     super(error.message);
     this.name = 'HTTPError';

@@ -3,11 +3,6 @@
     "checkJs": true,
     "strict": true,
     "module": "node16",
-    "moduleResolution": "node16",
-    "resolveJsonModule": true,
-    "paths": {
-      "@/*": ["./src/*"], // Alias '@' to the 'src' directory
-      "@root/*": ["./*"] // Alias '@' to the 'src' directory
-    }
+    "moduleResolution": "node16"
   }
 }
