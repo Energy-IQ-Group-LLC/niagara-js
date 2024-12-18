@@ -1,6 +1,19 @@
-import { stripTrailingSlash } from './helpers.js';
-import { JSDOM } from 'jsdom';
+import axios from 'axios';
+import https from 'https';
+import { JSDOM, ResourceLoader } from 'jsdom';
 import vm from 'vm';
+import { stripTrailingSlash } from './helpers.js';
+
+const axiosIgnoreCertError = axios.create({
+  httpsAgent: new https.Agent({ rejectUnauthorized: false }),
+});
+
+axiosIgnoreCertError.interceptors.response.use((response) => {
+  if (typeof response.data == 'string' && response.data.includes('login/loginN4.js')) {
+    throw new Error('Not Authorized');
+  }
+  return response;
+});
 
 /**
  * @param {string} siteUrl
@@ -12,15 +25,19 @@ export async function getDigestAuthLoginCookies(siteUrl, { username, password })
   const siteUrlFormatted = stripTrailingSlash(siteUrl);
 
   const scriptUrl = `${siteUrlFormatted}/login/core/auth.min.js`;
-  const scriptResponse = await fetch(scriptUrl);
-  const scriptContent = await scriptResponse.text();
+  const scriptResponse = await axiosIgnoreCertError.get(scriptUrl);
 
-  const dom = new JSDOM('', { url: siteUrlFormatted });
+  const dom = new JSDOM('', {
+    url: siteUrlFormatted,
+    resources: new ResourceLoader({
+      strictSSL: false,
+    }),
+  });
   const { window } = dom;
 
   try {
     vm.createContext(window); // Set up the context
-    vm.runInContext(scriptContent, window); // Run the auth.min.js script
+    vm.runInContext(scriptResponse.data, window); // Add the auth.min.js script to the window
 
     // This gets the JSESSIONID cookie to be set on the jsdom window
     await new Promise((resolve, reject) => {
@@ -34,8 +51,7 @@ export async function getDigestAuthLoginCookies(siteUrl, { username, password })
 
     // This activates the JSESSIONID cookie on Niagara's system
     const loginCookies = dom.cookieJar.getCookiesSync(siteUrlFormatted);
-    await fetch(`${siteUrlFormatted}/j_security_check/`, {
-      method: 'GET',
+    await axiosIgnoreCertError.get(`${siteUrlFormatted}/j_security_check/`, {
       headers: {
         Cookie: loginCookies.map((cookie) => `${cookie.key}=${cookie.value}`).join('; '),
       },
@@ -55,25 +71,18 @@ export async function logoutDigestAuth(siteUrl, sessionCookieString) {
   const siteUrlFormatted = stripTrailingSlash(siteUrl);
 
   // Getting the logout page so we can parse out the csrf token
-  const response = await fetch(`${siteUrlFormatted}/logout`, {
-    method: 'GET',
+  const response = await axiosIgnoreCertError.get(`${siteUrlFormatted}/logout`, {
     headers: {
       Cookie: sessionCookieString,
     },
   });
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch logout HTML: ${response.statusText}`);
-  }
-
   // Extract csrfToken
-  const responseText = await response.text();
-  const match = responseText.match(/doConfirm\('([^']+)'\)/);
+  const match = response.data.match(/doConfirm\('([^']+)'\)/);
   if (!match || !match[1]) throw new Error('No CSRF token found');
   const csrfToken = encodeURIComponent(match[1]);
 
-  await fetch(`${siteUrlFormatted}/logout?csrfToken=${csrfToken}`, {
-    method: 'GET',
+  await axiosIgnoreCertError.get(`${siteUrlFormatted}/logout?csrfToken=${csrfToken}`, {
     headers: {
       Cookie: sessionCookieString,
     },
@@ -87,19 +96,17 @@ export async function logoutDigestAuth(siteUrl, sessionCookieString) {
 export async function isSessionCookieValid(siteUrl, sessionCookieString) {
   const siteUrlFormatted = stripTrailingSlash(siteUrl);
 
-  // Validate session cookie
-  const result = await fetch(`${siteUrlFormatted}/timeout`, {
-    method: 'POST',
-    headers: {
-      Cookie: sessionCookieString,
-    },
-  });
-
-  // If the result is redirected, it means the timeout post redirected to niagara login page.
-  if (result.redirected) {
+  try {
+    // Validate session cookie
+    await axiosIgnoreCertError.post(`${siteUrlFormatted}/timeout`, null, {
+      headers: {
+        Cookie: sessionCookieString,
+      },
+    });
+    return true;
+  } catch (error) {
     return false;
   }
-  return true;
 }
 
 // /**
