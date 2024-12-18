@@ -44,6 +44,9 @@ export function createBQLAxiosInstance(instanceConfig) {
 
   axiosInstance.interceptors.response.use(
     (response) => {
+      if (typeof response.data == 'string' && response.data.includes('login/loginN4.js')) {
+        throw new Error('Not Authorized');
+      }
       return response;
     },
     (error) => {
