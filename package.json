@@ -26,8 +26,8 @@
       "types": "./dist/types/index.d.ts"
     },
     "./auth": {
-      "require": "./dist/cjs/src/auth.js",
-      "import": "./dist/esm/src/auth.js",
+      "require": "./dist/cjs/auth.js",
+      "import": "./dist/esm/auth.js",
       "types": "./dist/types/auth.d.ts"
     }
   },

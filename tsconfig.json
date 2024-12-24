@@ -1,14 +1,18 @@
 {
   "compilerOptions": {
-    "strict": true,
-    "target": "ESNext",
-    "moduleResolution": "node",
+    "baseUrl": "./",
     "declaration": true,
     "esModuleInterop": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    // "noImplicitAny": true,
+    // "noImplicitReturns": true,
+    "outDir": "dist",
     "resolveJsonModule": true,
+    "rootDir": "src",
     "sourceMap": true,
-    "noImplicitAny": true,
-    "noImplicitReturns": true
+    "strict": true,
+    "target": "ESNext"
   },
-  "exclude": ["node_modules", "dist", "index-test.ts"]
+  "exclude": ["node_modules", "dist", "src/index-test.ts"]
 }
