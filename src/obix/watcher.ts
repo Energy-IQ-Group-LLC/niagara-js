@@ -1,27 +1,20 @@
-import { stripPaths, replaceSpecialChars } from '../helpers.js';
-import { buildOutputList } from './parsers/values.js';
-import { UnknownTypeError } from '../errors.js';
+import { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { UnknownTypeError } from '../errors';
+import { replaceSpecialChars, stripPaths } from '../helpers';
+import { buildOutputList } from './parsers/values';
 
 export class WatcherRequestInstance {
-  /** @param {import('axios').AxiosInstance} axiosInstance */
-  constructor(axiosInstance) {
+  axiosInstance: AxiosInstance;
+
+  constructor(axiosInstance: AxiosInstance) {
     this.axiosInstance = axiosInstance;
   }
 
-  /**
-   * @param {Object} obj
-   * @param {string | number} obj.leaseTime
-   * @param {import('axios').AxiosRequestConfig} [axiosConfig]
-   */
-  async watcherUpdateDefaultLease({ leaseTime }, axiosConfig) {
+  async watcherUpdateDefaultLease(leaseTime: string | number, axiosConfig?: AxiosRequestConfig) {
     await this.axiosInstance.put('/watchService/defaultLeaseTime/', this.#buildLeaseBody(leaseTime), axiosConfig);
-    return;
   }
 
-  /**
-   * @param {import('axios').AxiosRequestConfig} [axiosConfig]
-   */
-  async watcherCreate(axiosConfig) {
+  async watcherCreate(axiosConfig?: AxiosRequestConfig) {
     const { data: watchCreateData } = await this.axiosInstance.post('/watchService/make', undefined, axiosConfig);
     const watcherName = watchCreateData.obj._attributes.href.split('/').at(-2);
     const watcherOperations = watchCreateData.obj.op;
@@ -37,13 +30,7 @@ export class WatcherRequestInstance {
     };
   }
 
-  /**
-   * @param {string} endpoint
-   * @param {Object} obj
-   * @param {string | string[]} obj.paths
-   * @param {import('axios').AxiosRequestConfig} [axiosConfig]
-   */
-  async #watcherAdd(endpoint, { paths }, axiosConfig) {
+  async #watcherAdd(endpoint: string, paths: string | string[], axiosConfig?: AxiosRequestConfig) {
     paths = stripPaths(paths);
     const { data } = await this.axiosInstance.post(
       endpoint,
@@ -57,13 +44,7 @@ export class WatcherRequestInstance {
     return this.#buildOutputList(data);
   }
 
-  /**
-   * @param {string} endpoint
-   * @param {Object} obj
-   * @param {string | string[]} obj.paths
-   * @param {import('axios').AxiosRequestConfig} [axiosConfig]
-   */
-  async #watcherRemovePath(endpoint, { paths }, axiosConfig) {
+  async #watcherRemovePath(endpoint: string, paths: string | string[], axiosConfig?: AxiosRequestConfig) {
     paths = stripPaths(paths);
     await this.axiosInstance.post(
       endpoint,
@@ -77,56 +58,31 @@ export class WatcherRequestInstance {
     return;
   }
 
-  /**
-   * @param {string} endpoint
-   * @param {import('axios').AxiosRequestConfig} [axiosConfig]
-   */
-  async #watcherDelete(endpoint, axiosConfig) {
+  async #watcherDelete(endpoint: string, axiosConfig?: AxiosRequestConfig) {
     await this.axiosInstance.post(endpoint, undefined, axiosConfig);
     return;
   }
 
-  /**
-   * @param {string} endpoint
-   * @param {import('axios').AxiosRequestConfig} [axiosConfig]
-   */
-  async #watcherPollChanges(endpoint, axiosConfig) {
+  async #watcherPollChanges(endpoint: string, axiosConfig?: AxiosRequestConfig) {
     const { data } = await this.axiosInstance.post(endpoint, undefined, axiosConfig);
     return this.#buildOutputList(data);
   }
 
-  /**
-   * @param {string} endpoint
-   * @param {import('axios').AxiosRequestConfig} [axiosConfig]
-   */
-  async #watcherPollRefresh(endpoint, axiosConfig) {
+  async #watcherPollRefresh(endpoint: string, axiosConfig?: AxiosRequestConfig) {
     const { data } = await this.axiosInstance.post(endpoint, undefined, axiosConfig);
     return this.#buildOutputList(data);
   }
 
-  /**
-   * @param {string} endpoint
-   * @param {Object} obj
-   * @param {string | number} obj.leaseTime
-   * @param {import('axios').AxiosRequestConfig} [axiosConfig]
-   */
-  async #watcherUpdateLease(endpoint, { leaseTime }, axiosConfig) {
+  async #watcherUpdateLease(endpoint: string, leaseTime: string | number, axiosConfig?: AxiosRequestConfig) {
     await this.axiosInstance.put(endpoint, this.#buildLeaseBody(leaseTime), axiosConfig);
     return;
   }
 
-  /**
-   * @param {any[]} dataArray
-   * @param {string} name
-   */
-  #findAttributeByName(dataArray, name) {
+  #findAttributeByName(dataArray: any[], name: string) {
     return dataArray.find((d) => d._attributes.name == name)?._attributes;
   }
 
-  /**
-   * @param {string | number} leaseTime
-   */
-  #buildLeaseBody(leaseTime) {
+  #buildLeaseBody(leaseTime: string | number) {
     if (Number.isInteger(Number(leaseTime))) {
       return `<real val="${Number(leaseTime)}" />`;
     } else if (typeof leaseTime == 'string') {
@@ -136,10 +92,7 @@ export class WatcherRequestInstance {
     }
   }
 
-  /**
-   * @param {any} data
-   */
-  #buildOutputList(data) {
+  #buildOutputList(data: any) {
     return buildOutputList(data).map((v) => ({ ...v, action: 'read' }));
   }
 }

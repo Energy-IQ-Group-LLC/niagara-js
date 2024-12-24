@@ -1,6 +1,9 @@
-import { UnknownTypeError } from '../../errors.js';
-import { makeArray } from '../../helpers.js';
-import { parseError } from './errors.js';
+// FIXME: fix typing
+// @ts-nocheck
+
+import { UnknownTypeError } from '../../errors';
+import { makeArray } from '../../helpers';
+import { parseError } from './errors';
 
 export const parseValueType = ({ enum: enu, bool, str, real }) => {
   let value, action, path;

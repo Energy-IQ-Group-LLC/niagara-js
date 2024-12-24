@@ -1,27 +1,24 @@
-import { createBQLAxiosInstance, createObixAxiosInstance } from './src/axios.js';
+import { Cookie } from 'tough-cookie';
+import { createBQLAxiosInstance, createObixAxiosInstance } from './src/axios';
 // BQL Imports
-import { BQLQueryInstance } from './src/bql/query.js';
+import { BQLQueryInstance } from './src//bql/query';
 // Obix Imports
-import { BatchRequestInstance } from './src/obix/batch.js';
-import { HistoryRequestInstance } from './src/obix/history.js';
-import { RawRequestInstance } from './src/obix/raw.js';
-import { StandardRequestInstance } from './src/obix/standard.js';
-import { WatcherRequestInstance } from './src/obix/watcher.js';
+import { BatchRequestInstance } from './src/obix/batch';
+import { HistoryRequestInstance } from './src/obix/history';
+import { RawRequestInstance } from './src/obix/raw';
+import { StandardRequestInstance } from './src/obix/standard';
+import { WatcherRequestInstance } from './src/obix/watcher';
 
 export class NiagaraConnector {
-  /**
-   * @constructor
-   * @param {AxiosInstanceConfig} axiosInstanceConfig
-   */
-  constructor(axiosInstanceConfig) {
+  bql: ReturnType<typeof generateBQLFunctions>;
+  obix: ReturnType<typeof generateObixFunctions>;
+
+  constructor(axiosInstanceConfig: AxiosInstanceConfig) {
     this.bql = generateBQLFunctions(axiosInstanceConfig);
     this.obix = generateObixFunctions(axiosInstanceConfig);
   }
 
-  /**
-   * @param {string | import("tough-cookie").Cookie} sessionCookie
-   */
-  updateSessionCookie(sessionCookie) {
+  updateSessionCookie(sessionCookie: string | Cookie) {
     if (this.bql.axiosInstance.defaults.baseURL) {
       this.bql.axiosInstance.cookieJar?.setCookieSync(sessionCookie, this.bql.axiosInstance.defaults.baseURL);
     }
@@ -31,10 +28,7 @@ export class NiagaraConnector {
   }
 }
 
-/**
- * @param {AxiosInstanceConfig} axiosInstanceConfig
- */
-function generateBQLFunctions(axiosInstanceConfig) {
+function generateBQLFunctions(axiosInstanceConfig: AxiosInstanceConfig) {
   const axiosInstance = createBQLAxiosInstance(axiosInstanceConfig);
 
   const bqlQueryInstance = new BQLQueryInstance(axiosInstance);
@@ -45,10 +39,7 @@ function generateBQLFunctions(axiosInstanceConfig) {
   };
 }
 
-/**
- * @param {AxiosInstanceConfig} axiosInstanceConfig
- */
-function generateObixFunctions(axiosInstanceConfig) {
+function generateObixFunctions(axiosInstanceConfig: AxiosInstanceConfig) {
   const axiosInstance = createObixAxiosInstance(axiosInstanceConfig);
 
   const batchRequestInstance = new BatchRequestInstance(axiosInstance);

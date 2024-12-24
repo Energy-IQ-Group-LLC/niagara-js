@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ESNext",
+    "moduleResolution": "node",
+    "declaration": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true
+  },
+  "exclude": ["node_modules", "dist", "index-test.ts"]
+}

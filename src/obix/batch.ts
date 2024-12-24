@@ -1,22 +1,18 @@
-import { buildOutputList } from './parsers/values.js';
-import { stripPaths, makeArray, replaceSpecialChars } from '../helpers.js';
+import { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { makeArray, replaceSpecialChars, stripPaths } from '../helpers';
+import { buildOutputList } from './parsers/values';
 
 export class BatchRequestInstance {
-  /** @param {import('axios').AxiosInstance} axiosInstance */
-  constructor(axiosInstance) {
+  axiosInstance: AxiosInstance;
+
+  constructor(axiosInstance: AxiosInstance) {
     this.axiosInstance = axiosInstance;
   }
 
-  /**
-   * @param {Object} param
-   * @param {Obix.Batch.RequestItem | Obix.Batch.RequestItem[]} param.batch
-   */
-  async batchRequest({ batch }) {
+  async batchRequest(batch: Obix.Batch.RequestItem | Obix.Batch.RequestItem[], axiosConfig?: AxiosRequestConfig) {
     // Why? the response doesn't return the path for batch writes, so we much create an array of them to populate the paths in the output
-    /** @type {string[]} */
-    const writeActionPaths = [];
-    /** @type {string[]} */
-    const batchUris = [];
+    const writeActionPaths: string[] = [];
+    const batchUris: string[] = [];
 
     const baseURL = this.axiosInstance.defaults.baseURL;
 
@@ -37,7 +33,8 @@ export class BatchRequestInstance {
       `batch`,
       `<list>
         ${batchUris.join('')}
-      </list>`
+      </list>`,
+      axiosConfig
     );
 
     const outputList = buildOutputList(data);
@@ -48,16 +45,10 @@ export class BatchRequestInstance {
     return [...inputErrors, ...errorOutputList, ...writeOutputList, ...readOutputList];
   }
 
-  /**
-   * @param {Obix.Batch.RequestItem[]} batch
-   */
-  #filterInvalidBatchInputs(batch) {
-    /**
-     * @type {Obix.Batch.InvalidRequestItem[]}
-     */
-    const inputErrors = [];
+  #filterInvalidBatchInputs(batch: Obix.Batch.RequestItem[]) {
+    const inputErrors: Obix.Batch.InvalidRequestItem[] = [];
 
-    const errorActions = (/** @type {Obix.Batch.RequestItem} */ objTemp, /** @type {string} */ reason) => {
+    const errorActions = (objTemp: Obix.Batch.RequestItem, reason: string) => {
       inputErrors.push({ ...objTemp, error: true, reason });
       return false;
     };

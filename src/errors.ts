@@ -1,6 +1,10 @@
+import { AxiosError } from 'axios';
+
 export class HTTPError extends Error {
-  /** @param {import('axios').AxiosError} error */
-  constructor(error) {
+  friendlyError: string;
+  inDepthError?: string;
+
+  constructor(error: AxiosError) {
     super(error.message);
     this.name = 'HTTPError';
 
@@ -37,12 +41,10 @@ export class HTTPError extends Error {
 
 // Invalid Path Error
 export class PathError extends Error {
-  /**
-   * @param {string} path
-   * @param {string} [reason]
-   * @param {string} [href]
-   */
-  constructor(path, reason, href) {
+  friendlyError: string;
+  inDepthError: string;
+
+  constructor(path: string, reason?: string, href?: string) {
     super(`Invalid Path/Uri: ${path}`);
     this.name = 'PathError';
     this.friendlyError = this.message;
@@ -52,6 +54,9 @@ export class PathError extends Error {
 
 // Invalid input type
 export class InvalidTypeError extends Error {
+  friendlyError: string;
+  inDepthError: string;
+
   constructor() {
     super('Invalid Input Type');
     this.name = 'InvalidTypeError';
@@ -62,6 +67,9 @@ export class InvalidTypeError extends Error {
 
 // Unknown Data type
 export class UnknownTypeError extends Error {
+  friendlyError: string;
+  inDepthError: string;
+
   constructor() {
     super('Unknown Data Type');
     this.name = 'UnknownTypeError';
@@ -71,8 +79,11 @@ export class UnknownTypeError extends Error {
 }
 
 export class BQLHTTPError extends Error {
-  /** @param {import('axios').AxiosError} error */
-  constructor(error) {
+  friendlyError: string;
+  inDepthError?: string;
+  responseData: unknown;
+
+  constructor(error: AxiosError) {
     super(error.message);
     this.name = 'HTTPError';
 

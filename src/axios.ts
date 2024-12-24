@@ -2,14 +2,11 @@ import axios from 'axios';
 import https from 'https';
 import { CookieJar } from 'tough-cookie';
 import { xml2js } from 'xml-js';
-import { BQLHTTPError, HTTPError } from './errors.js';
-import { parseError } from './obix/parsers/errors.js';
-import { stripTrailingSlash } from './helpers.js';
+import { BQLHTTPError, HTTPError } from './errors';
+import { stripTrailingSlash } from './helpers';
+import { parseError } from './obix/parsers/errors';
 
-/**
- * @param {AxiosInstanceConfig} instanceConfig - The configuration for creating the Axios instance.
- */
-export function createObixAxiosInstance(instanceConfig) {
+export function createObixAxiosInstance(instanceConfig: AxiosInstanceConfig) {
   const stripedUrl = stripTrailingSlash(instanceConfig.url);
   const axiosInstance = createDefaultAxiosInstance({ ...instanceConfig, url: `${stripedUrl}/obix/` });
 
@@ -36,10 +33,7 @@ export function createObixAxiosInstance(instanceConfig) {
   return axiosInstance;
 }
 
-/**
- * @param {AxiosInstanceConfig} instanceConfig - The configuration for creating the Axios instance.
- */
-export function createBQLAxiosInstance(instanceConfig) {
+export function createBQLAxiosInstance(instanceConfig: AxiosInstanceConfig) {
   const axiosInstance = createDefaultAxiosInstance(instanceConfig);
 
   axiosInstance.interceptors.response.use(
@@ -57,10 +51,7 @@ export function createBQLAxiosInstance(instanceConfig) {
   return axiosInstance;
 }
 
-/**
- * @param {AxiosInstanceConfig} instance - The configuration for creating the Axios instance.
- */
-function createDefaultAxiosInstance({ url, username, password, sessionCookie, timeout = 5000 }) {
+function createDefaultAxiosInstance({ url, username, password, sessionCookie, timeout = 5000 }: AxiosInstanceConfig) {
   const axiosInstance = axios.create({
     baseURL: url,
     timeout,

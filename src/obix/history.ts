@@ -1,8 +1,8 @@
 import dayjs from 'dayjs';
-import advancedFormat from 'dayjs/plugin/advancedFormat.js';
-import localizedFormat from 'dayjs/plugin/localizedFormat.js';
-import timezone from 'dayjs/plugin/timezone.js'; // dependent on utc plugin
-import utc from 'dayjs/plugin/utc.js';
+import advancedFormat from 'dayjs/plugin/advancedFormat';
+import localizedFormat from 'dayjs/plugin/localizedFormat';
+import timezone from 'dayjs/plugin/timezone'; // dependent on utc plugin
+import utc from 'dayjs/plugin/utc';
 
 // Order matters here
 dayjs.extend(timezone);
@@ -10,16 +10,17 @@ dayjs.extend(utc);
 dayjs.extend(advancedFormat);
 dayjs.extend(localizedFormat);
 
-import { makeArray, stripPaths } from '../helpers.js';
+import { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { makeArray, stripPaths } from '../helpers';
 
-/**
- * @typedef {Object} QueryObject
- * @property {string | number | undefined} start
- * @property {string | number | undefined} end
- * @property {string | number | undefined} limit
- */
+export interface QueryObject {
+  start: string | number | undefined;
+  end: string | number | undefined;
+  limit: string | number | undefined;
+}
 
 const PRESET_OPTIONS = [
+  'today',
   'yesterday',
   'last24Hours',
   'weekToDate',
@@ -30,10 +31,13 @@ const PRESET_OPTIONS = [
   'yearToDate (limit=1000)',
   'lastYear (limit=1000)',
   'unboundedQuery',
-];
+] as const;
 
 //#region Errors
 class MissingHistoryQuery extends Error {
+  friendlyError: string;
+  inDepthError: string;
+
   constructor() {
     super('Missing history query');
     this.name = 'MissingHistoryQuery';
@@ -43,10 +47,10 @@ class MissingHistoryQuery extends Error {
 }
 
 class InvalidHistoryPresetQuery extends Error {
-  /**
-   * @param {string} query
-   */
-  constructor(query) {
+  friendlyError: string;
+  inDepthError: string;
+
+  constructor(query: string) {
     super(`Invalid preset history query: ${query}`);
     this.name = 'InvalidHistoryPresetQuery';
     this.friendlyError = this.message;
@@ -55,11 +59,10 @@ class InvalidHistoryPresetQuery extends Error {
 }
 
 class InvalidHistoryQueryParameter extends Error {
-  /**
-   * @param {string} parameter
-   * @param {any} paramValue
-   */
-  constructor(parameter, paramValue) {
+  friendlyError?: string;
+  inDepthError?: string;
+
+  constructor(parameter: string, paramValue: any) {
     super(`Invalid parameter in history query: ${parameter}`);
     this.name = 'InvalidHistoryQueryParameter';
     if (parameter == 'limit') {
@@ -74,17 +77,13 @@ class InvalidHistoryQueryParameter extends Error {
 //#endregion Errors
 
 export class HistoryRequestInstance {
-  /** @param {import('axios').AxiosInstance} axiosInstance */
-  constructor(axiosInstance) {
+  axiosInstance: AxiosInstance;
+
+  constructor(axiosInstance: AxiosInstance) {
     this.axiosInstance = axiosInstance;
   }
 
-  /**
-   * @param {Object} obj
-   * @param {string} obj.path
-   * @param {string | QueryObject} obj.query
-   */
-  async historyRequest({ path, query }) {
+  async historyRequest({ path, query }: { path: string; query: (typeof PRESET_OPTIONS)[number] | QueryObject }, axiosConfig?: AxiosRequestConfig) {
     if (!query) throw new MissingHistoryQuery();
     path = stripPaths(path)[0];
     let historyData;
@@ -96,10 +95,9 @@ export class HistoryRequestInstance {
       }
 
       // Call to get all preset queries
-      const { data: presetQueryData } = await this.axiosInstance.get(`histories/${path}`);
-      query = presetQueryData.obj.ref.find((/** @type {{ _attributes: { name: any; }; }} */ presetQuery) => presetQuery._attributes.name == query)
-        ?._attributes.href;
-      historyData = (await this.axiosInstance.get(`histories/${path}${query}`)).data;
+      const { data: presetQueryData } = await this.axiosInstance.get(`histories/${path}`, axiosConfig);
+      query = presetQueryData.obj.ref.find((presetQuery: any) => presetQuery._attributes.name == query)?._attributes.href;
+      historyData = (await this.axiosInstance.get(`histories/${path}${query}`, axiosConfig)).data;
     } else {
       if (query.start) {
         try {
@@ -121,17 +119,12 @@ export class HistoryRequestInstance {
         }
       }
 
-      historyData = (await this.axiosInstance.get(`histories/${path}/~historyQuery/`, { params: query })).data;
+      historyData = (await this.axiosInstance.get(`histories/${path}/~historyQuery/`, { params: query, ...axiosConfig })).data;
     }
     return this.#parseHistoryDataHelper({ data: historyData.obj, path });
   }
 
-  /**
-   * @param {Object} obj
-   * @param {*} obj.data
-   * @param {string} obj.path
-   */
-  #parseHistoryDataHelper({ data, path }) {
+  #parseHistoryDataHelper({ data, path }: { data: any; path: string }) {
     const timezone = data.obj.abstime._attributes.tz;
     const limit = data.int._attributes.val;
     // @ts-ignore

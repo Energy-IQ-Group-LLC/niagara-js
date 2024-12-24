@@ -1,9 +1,6 @@
-import { PathError } from './errors.js';
+import { PathError } from './errors';
 
-/**
- * @param {string[] | string} paths
- */
-export const stripPaths = (paths) => {
+export const stripPaths = (paths: string | string[]) => {
   const pathsArray = makeArray(paths);
   // Removes null and undefined values from array
   const pathsArrayFiltered = pathsArray.filter((p) => p);
@@ -17,14 +14,7 @@ export const stripPaths = (paths) => {
   });
 };
 
-/**
- * Ensures the input is returned as an array.
- *
- * @template T
- * @param {T | T[]} data - The input value to be converted into an array.
- * @returns {T[]} An array containing the input value(s) or an empty array if the input is falsy.
- */
-export const makeArray = (data) => {
+export const makeArray = <T>(data: T | T[]): T[] => {
   if (data) {
     return Array.isArray(data) ? data : [data];
   } else {
@@ -32,10 +22,7 @@ export const makeArray = (data) => {
   }
 };
 
-/**
- * @param {string | number | boolean} value
- */
-export const replaceSpecialChars = (value) => {
+export const replaceSpecialChars = (value: string | number | boolean) => {
   // https://stackoverflow.com/questions/1091945/what-characters-do-i-need-to-escape-in-xml-documents#:~:text=XML%20escape%20characters,the%20W3C%20Markup%20Validation%20Service.
   const specialChars = [
     // & must go first or it will replace the escape from the other symbols
@@ -53,11 +40,6 @@ export const replaceSpecialChars = (value) => {
   return value;
 };
 
-/**
- * Removes a trailing slash ('/') from the end of a string if it exists.
- * @param {string} input - The input string.
- * @returns {string} The input string without a trailing slash.
- */
-export function stripTrailingSlash(input) {
+export function stripTrailingSlash(input: string) {
   return input.endsWith('/') ? input.slice(0, -1) : input;
 }

@@ -2,7 +2,7 @@ import axios from 'axios';
 import https from 'https';
 import { JSDOM, ResourceLoader } from 'jsdom';
 import vm from 'vm';
-import { stripTrailingSlash } from './helpers.js';
+import { stripTrailingSlash } from './helpers';
 
 const axiosIgnoreCertError = axios.create({
   httpsAgent: new https.Agent({ rejectUnauthorized: false }),
@@ -15,13 +15,7 @@ axiosIgnoreCertError.interceptors.response.use((response) => {
   return response;
 });
 
-/**
- * @param {string} siteUrl
- * @param {Object} auth - Digest auth credentials
- * @param {string} auth.username
- * @param {string} auth.password
- */
-export async function getDigestAuthLoginCookies(siteUrl, { username, password }) {
+export async function getDigestAuthLoginCookies(siteUrl: string, { username, password }: { username: string; password: string }) {
   const siteUrlFormatted = stripTrailingSlash(siteUrl);
 
   const scriptUrl = `${siteUrlFormatted}/login/core/auth.min.js`;
@@ -63,11 +57,7 @@ export async function getDigestAuthLoginCookies(siteUrl, { username, password })
   }
 }
 
-/**
- * @param {string} siteUrl
- * @param {string} sessionCookieString
- */
-export async function logoutDigestAuth(siteUrl, sessionCookieString) {
+export async function logoutDigestAuth(siteUrl: string, sessionCookieString: string) {
   const siteUrlFormatted = stripTrailingSlash(siteUrl);
 
   // Getting the logout page so we can parse out the csrf token
@@ -89,11 +79,7 @@ export async function logoutDigestAuth(siteUrl, sessionCookieString) {
   });
 }
 
-/**
- * @param {string} siteUrl
- * @param {string} sessionCookieString
- */
-export async function isSessionCookieValid(siteUrl, sessionCookieString) {
+export async function isSessionCookieValid(siteUrl: string, sessionCookieString: string) {
   const siteUrlFormatted = stripTrailingSlash(siteUrl);
 
   try {
