@@ -1,6 +1,6 @@
 import { AxiosInstance, AxiosRequestConfig } from 'axios';
-import { replaceSpecialChars, stripPaths } from '../helpers';
-import { parseValueType } from './parsers/values';
+import { replaceSpecialChars, stripPaths } from '../helpers.js';
+import { parseValueType } from './parsers/values.js';
 
 export class StandardRequestInstance {
   axiosInstance: AxiosInstance;

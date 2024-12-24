@@ -1,8 +1,8 @@
 import dayjs from 'dayjs';
-import advancedFormat from 'dayjs/plugin/advancedFormat';
-import localizedFormat from 'dayjs/plugin/localizedFormat';
-import timezone from 'dayjs/plugin/timezone'; // dependent on utc plugin
-import utc from 'dayjs/plugin/utc';
+import advancedFormat from 'dayjs/plugin/advancedFormat.js';
+import localizedFormat from 'dayjs/plugin/localizedFormat.js';
+import timezone from 'dayjs/plugin/timezone.js'; // dependent on utc plugin
+import utc from 'dayjs/plugin/utc.js';
 
 // Order matters here
 dayjs.extend(timezone);
@@ -11,7 +11,7 @@ dayjs.extend(advancedFormat);
 dayjs.extend(localizedFormat);
 
 import { AxiosInstance, AxiosRequestConfig } from 'axios';
-import { makeArray, stripPaths } from '../helpers';
+import { makeArray, stripPaths } from '../helpers.js';
 
 export interface QueryObject {
   start: string | number | undefined;

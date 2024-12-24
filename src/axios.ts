@@ -2,9 +2,9 @@ import axios from 'axios';
 import https from 'https';
 import { CookieJar } from 'tough-cookie';
 import { xml2js } from 'xml-js';
-import { BQLHTTPError, HTTPError } from './errors';
-import { stripTrailingSlash } from './helpers';
-import { parseError } from './obix/parsers/errors';
+import { BQLHTTPError, HTTPError } from './errors.js';
+import { stripTrailingSlash } from './helpers.js';
+import { parseError } from './obix/parsers/errors.js';
 
 export function createObixAxiosInstance(instanceConfig: AxiosInstanceConfig) {
   const stripedUrl = stripTrailingSlash(instanceConfig.url);

@@ -1,4 +1,4 @@
-import { PathError, InvalidTypeError } from '../../errors';
+import { PathError, InvalidTypeError } from '../../errors.js';
 
 // FIXME: fix typing for error payload
 // @ts-ignore

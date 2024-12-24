@@ -1,5 +1,5 @@
 import { AxiosInstance, AxiosRequestConfig } from 'axios';
-import { stripPaths } from '../helpers';
+import { stripPaths } from '../helpers.js';
 
 export class RawRequestInstance {
   axiosInstance: AxiosInstance;

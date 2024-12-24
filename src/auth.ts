@@ -2,7 +2,7 @@ import axios from 'axios';
 import https from 'https';
 import { JSDOM, ResourceLoader } from 'jsdom';
 import vm from 'vm';
-import { stripTrailingSlash } from './helpers';
+import { stripTrailingSlash } from './helpers.js';
 
 const axiosIgnoreCertError = axios.create({
   httpsAgent: new https.Agent({ rejectUnauthorized: false }),

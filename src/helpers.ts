@@ -1,4 +1,4 @@
-import { PathError } from './errors';
+import { PathError } from './errors.js';
 
 export const stripPaths = (paths: string | string[]) => {
   const pathsArray = makeArray(paths);

@@ -1,7 +1,7 @@
 import { AxiosInstance, AxiosRequestConfig } from 'axios';
-import { UnknownTypeError } from '../errors';
-import { replaceSpecialChars, stripPaths } from '../helpers';
-import { buildOutputList } from './parsers/values';
+import { UnknownTypeError } from '../errors.js';
+import { replaceSpecialChars, stripPaths } from '../helpers.js';
+import { buildOutputList } from './parsers/values.js';
 
 export class WatcherRequestInstance {
   axiosInstance: AxiosInstance;

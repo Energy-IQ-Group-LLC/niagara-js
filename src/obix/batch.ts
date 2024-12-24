@@ -1,6 +1,6 @@
 import { AxiosInstance, AxiosRequestConfig } from 'axios';
-import { makeArray, replaceSpecialChars, stripPaths } from '../helpers';
-import { buildOutputList } from './parsers/values';
+import { makeArray, replaceSpecialChars, stripPaths } from '../helpers.js';
+import { buildOutputList } from './parsers/values.js';
 
 export class BatchRequestInstance {
   axiosInstance: AxiosInstance;

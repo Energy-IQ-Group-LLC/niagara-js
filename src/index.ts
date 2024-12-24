@@ -1,13 +1,13 @@
 import { Cookie } from 'tough-cookie';
-import { createBQLAxiosInstance, createObixAxiosInstance } from './src/axios';
+import { createBQLAxiosInstance, createObixAxiosInstance } from './axios.js';
 // BQL Imports
-import { BQLQueryInstance } from './src//bql/query';
+import { BQLQueryInstance } from './bql/query.js';
 // Obix Imports
-import { BatchRequestInstance } from './src/obix/batch';
-import { HistoryRequestInstance } from './src/obix/history';
-import { RawRequestInstance } from './src/obix/raw';
-import { StandardRequestInstance } from './src/obix/standard';
-import { WatcherRequestInstance } from './src/obix/watcher';
+import { BatchRequestInstance } from './obix/batch.js';
+import { HistoryRequestInstance } from './obix/history.js';
+import { RawRequestInstance } from './obix/raw.js';
+import { StandardRequestInstance } from './obix/standard.js';
+import { WatcherRequestInstance } from './obix/watcher.js';
 
 export class NiagaraConnector {
   bql: ReturnType<typeof generateBQLFunctions>;
