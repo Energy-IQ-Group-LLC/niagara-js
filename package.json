@@ -45,10 +45,10 @@
   "dependencies": {
     "axios": "^1.6.2",
     "dayjs": "^1.11.9",
+    "fast-xml-parser": "^4.5.1",
     "jsdom": "^25.0.1",
     "papaparse": "^5.4.1",
-    "tough-cookie": "^5.0.0",
-    "xml-js": "^1.6.11"
+    "tough-cookie": "^5.0.0"
   },
   "devDependencies": {
     "@types/jsdom": "^21.1.7",
