@@ -1,30 +1,41 @@
 import axios from 'axios';
+import { XMLParser } from 'fast-xml-parser';
 import https from 'https';
 import { CookieJar } from 'tough-cookie';
-import { xml2js } from 'xml-js';
 import { BQLHTTPError, HTTPError } from './errors.js';
 import { stripTrailingSlash } from './helpers.js';
 import { parseError } from './obix/parsers/errors.js';
 
-export function createObixAxiosInstance(instanceConfig: AxiosInstanceConfig) {
-  const stripedUrl = stripTrailingSlash(instanceConfig.url);
-  const axiosInstance = createDefaultAxiosInstance({ ...instanceConfig, url: `${stripedUrl}/obix/` });
+const parser = new XMLParser({
+  allowBooleanAttributes: true,
+  attributeNamePrefix: '',
+  attributesGroupName: 'attributes',
+  ignoreAttributes: ['xmlns', 'xsi:schemaLocation', 'xmlns:xsi'],
+  ignoreDeclaration: true,
+  ignorePiTags: true,
+  parseAttributeValue: true,
+  processEntities: false,
+  isArray: (name, jpath, isLeafNode, isAttribute) => {
+    if (isAttribute) return false;
+    else return true;
+  },
+});
 
-  axiosInstance.defaults.transformResponse = [
-    function (data) {
-      try {
-        return xml2js(data, { compact: true });
-      } catch (error) {
-        return data;
-      }
-    },
-  ];
+export function createObixAxiosInstance(instanceConfig: AxiosInstanceConfig) {
+  const strippedUrl = stripTrailingSlash(instanceConfig.url);
+  const axiosInstance = createDefaultAxiosInstance({ ...instanceConfig, url: `${strippedUrl}/obix/` });
 
   axiosInstance.interceptors.response.use(
+    // Any status code that lie within the range of 2xx cause this function to trigger
     (response) => {
-      parseError(response.data?.err);
+      const parsedXml = parser.parse(response.data) as ObixElementRoot;
+      if (parsedXml.err) {
+        throw parseError(parsedXml.err[0]);
+      }
+      response.data = parsedXml;
       return response;
     },
+    // Any status codes that falls outside the range of 2xx cause this function to trigger
     (error) => {
       throw new HTTPError(error);
     }
