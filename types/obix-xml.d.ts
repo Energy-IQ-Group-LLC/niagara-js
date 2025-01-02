@@ -69,6 +69,8 @@ declare global {
       val?: number; // xs:double
     }
 
+    export interface Ref extends Obj {}
+
     export interface RelTime extends Obj {
       min?: string; // xs:duration
       max?: string; // xs:duration
@@ -98,6 +100,7 @@ declare global {
       list?: List;
       op?: Op;
       real?: Real;
+      ref?: Ref;
       relTime?: RelTime;
       str?: Str;
       uri?: Uri;
@@ -117,6 +120,48 @@ declare global {
   export type ObixElement<T> = ObixElementRoot & {
     attributes?: T; // The attributes specific to this element
   };
+
+  //#region Obix Unit
+  export interface ObixUnit {
+    obj: {
+      str: UnitString[];
+      obj: UnitDimension[];
+      real: UnitReal[];
+      attributes: {
+        href: string;
+        is: 'obix:Unit';
+      };
+    }[];
+  }
+
+  interface UnitString {
+    attributes: {
+      name: 'description' | 'symbol';
+      val: string;
+    };
+  }
+
+  interface UnitDimension {
+    int: UnitInt[];
+    attributes: {
+      name: 'dimension';
+    };
+  }
+
+  interface UnitInt {
+    attributes: {
+      name: 'kg' | 'm' | 'sec' | 'K' | 'A' | 'mol' | 'cd';
+      val: number;
+    };
+  }
+
+  interface UnitReal {
+    attributes: {
+      name: 'scale' | 'offset';
+      val: number;
+    };
+  }
+  //#endregion Obix Unit
 }
 
 export {};
