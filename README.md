@@ -6,6 +6,18 @@ Javascript library that contains the core functions for communicating with Tridi
 
 ### Obix
 
+#### Niagara Obix Docs
+
+- [Part 1](https://www.niagara-community.com/s/article/A-Beginner-s-Guide-to-oBIX-even-if-you-re-not-a-developer---Part-1)
+- [Part 2](https://www.niagara-community.com/s/article/A-Beginner-s-Guide-to-oBIX-even-if-you-re-not-a-developer---Part-2)
+- [Part 3](https://www.niagara-community.com/s/article/A-Beginner-s-Guide-to-oBIX-even-if-you-re-not-a-developer---Part-3)
+- [Part 4](https://www.niagara-community.com/s/article/A-Beginner-s-Guide-to-oBIX-even-if-you-re-not-a-developer---Part-4)
+- [Part 5](https://www.niagara-community.com/s/article/A-Beginner-s-Guide-to-oBIX-even-if-you-re-not-a-developer---Part-5)
+- [Part 6](https://www.niagara-community.com/s/article/A-Beginner-s-Guide-to-oBIX-even-if-you-re-not-a-developer---Part-6)
+- [Part 7](https://www.niagara-community.com/s/article/A-Beginner-s-Guide-to-oBIX-even-if-you-re-not-a-developer---Part-7)
+
+[Watch Alarms](https://www.niagara-community.com/s/article/How-can-a-3rd-party-system-subscribe-to-Niagara-alarms-using-Obix)
+
 Import and create new `ObixInstance` passing the `protocol`, `host`, `port`, `username`, and `password`.
 
 ```
