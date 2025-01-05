@@ -1,4 +1,6 @@
-import { PathError } from './errors.js';
+import { ATTRIBUTES_GROUP_NAME } from './constants.js';
+import { InvalidTypeError, PathError } from './errors.js';
+import { ObixAttributes, ObixElement } from './types/obix.js';
 
 export const stripPaths = (paths: string | string[]) => {
   const pathsArray = makeArray(paths);
@@ -22,24 +24,19 @@ export const makeArray = <T>(data: T | T[]): T[] => {
   }
 };
 
-export const replaceSpecialChars = (value: string | number | boolean) => {
-  // https://stackoverflow.com/questions/1091945/what-characters-do-i-need-to-escape-in-xml-documents#:~:text=XML%20escape%20characters,the%20W3C%20Markup%20Validation%20Service.
-  const specialChars = [
-    // & must go first or it will replace the escape from the other symbols
-    { symbol: '&', escape: '&amp;' },
-    { symbol: '"', escape: '&quot;' },
-    { symbol: "'", escape: '&apos;' },
-    { symbol: '<', escape: '&lt;' },
-    { symbol: '>', escape: '&gt;' },
-  ];
-  if (typeof value == 'string') {
-    specialChars.forEach((sc) => {
-      if (typeof value == 'string') value = value.replaceAll(sc.symbol, sc.escape);
-    });
-  }
-  return value;
-};
-
 export function stripTrailingSlash(input: string) {
   return input.endsWith('/') ? input.slice(0, -1) : input;
 }
+
+export const parseError = (error: ObixElement<ObixAttributes.Err>) => {
+  const errorDisplay = error?.[ATTRIBUTES_GROUP_NAME]?.display;
+  const errorReason = error?.[ATTRIBUTES_GROUP_NAME]?.is;
+  const errorHref = error?.[ATTRIBUTES_GROUP_NAME]?.href;
+
+  if (errorDisplay || errorReason) {
+    if (errorReason?.includes('obix:BadUriErr') || errorDisplay?.includes('Path depth') || errorDisplay?.includes('Invalid name in path'))
+      throw new PathError(errorDisplay || '', errorReason, errorHref);
+    else if (errorDisplay?.includes('Invalid')) throw new InvalidTypeError();
+    else throw new Error(errorDisplay || errorReason);
+  }
+};
