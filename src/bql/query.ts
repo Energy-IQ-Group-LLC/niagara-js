@@ -15,7 +15,7 @@ class MissingBQLQuery extends Error {
 }
 //#endregion Errors
 
-type BQLQueryResults = Array<Record<string, string | number | boolean | null>>;
+type BQLQueryResults<T = Record<string, string | number | boolean | null>> = Array<T>;
 
 export class BQLQueryInstance {
   axiosInstance: AxiosInstance;
@@ -24,14 +24,14 @@ export class BQLQueryInstance {
     this.axiosInstance = axiosInstance;
   }
 
-  async bqlQuery(query: string, axiosConfig?: AxiosRequestConfig) {
+  async bqlQuery<T>(query: string, axiosConfig?: AxiosRequestConfig) {
     if (!query) {
       throw new MissingBQLQuery();
     }
 
-    const { data } = await this.axiosInstance.get(`ord?${query}|view:file:ITableToCsv`, axiosConfig);
+    const { data } = await this.axiosInstance.get<string>(`ord?${query}|view:file:ITableToCsv`, axiosConfig);
 
-    const parsedResult = Papa.parse(data, {
+    const parsedResult = Papa.parse<BQLQueryResults<T>>(data, {
       dynamicTyping: true,
       header: true,
       skipEmptyLines: 'greedy',
@@ -42,6 +42,6 @@ export class BQLQueryInstance {
       },
     });
 
-    return parsedResult.data as BQLQueryResults;
+    return parsedResult.data;
   }
 }
