@@ -1,25 +1,11 @@
 import axios from 'axios';
-import { XMLParser } from 'fast-xml-parser';
 import https from 'https';
 import { CookieJar } from 'tough-cookie';
 import { BQLHTTPError, HTTPError } from './errors.js';
-import { stripTrailingSlash } from './helpers.js';
-import { parseError } from './obix/parsers/errors.js';
-
-const parser = new XMLParser({
-  allowBooleanAttributes: true,
-  attributeNamePrefix: '',
-  attributesGroupName: 'attributes',
-  ignoreAttributes: ['xmlns', 'xsi:schemaLocation', 'xmlns:xsi'],
-  ignoreDeclaration: true,
-  ignorePiTags: true,
-  parseAttributeValue: true,
-  processEntities: false,
-  isArray: (name, jpath, isLeafNode, isAttribute) => {
-    if (isAttribute) return false;
-    else return true;
-  },
-});
+import { parseError, stripTrailingSlash } from './helpers.js';
+import { parser } from './obix/xml.js';
+import { AxiosInstanceConfig } from './types/axios.js';
+import { ObixElementRoot } from './types/obix.js';
 
 export function createObixAxiosInstance(instanceConfig: AxiosInstanceConfig) {
   const strippedUrl = stripTrailingSlash(instanceConfig.url);
