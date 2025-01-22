@@ -9,7 +9,7 @@ export namespace ObixAttributes {
 
   // Complex Types
 
-  export interface Obj {
+  export type Obj = {
     display?: string;
     displayName?: string;
     href?: string;
@@ -19,78 +19,78 @@ export namespace ObixAttributes {
     null?: boolean;
     status?: Status; // Default: 'ok'
     writable?: boolean; // Default: true
-  }
+  };
 
-  export interface AbsTime extends Obj {
+  export type AbsTime = Obj & {
     min?: string; // xs:dateTime
     max?: string; // xs:dateTime
     val?: string; // xs:dateTime
-  }
+  };
 
-  export interface Bool extends Obj {
+  export type Bool = Obj & {
     range?: string; // anyURI
     val?: boolean; // xs:boolean
-  }
+  };
 
-  export interface Err extends Obj {}
+  export type Err = Obj & {};
 
-  export interface Enum extends Obj {
+  export type Enum = Obj & {
     range?: string; // anyURI
     val?: string; // xs:NMTOKEN
-  }
+  };
 
-  export interface Feed extends Obj {
+  export type Feed = Obj & {
     in?: Contract; // Default: obix:Nil
     of?: Contract; // Default: obix:obj
-  }
+  };
 
-  export interface Int extends Obj {
+  export type Int = Obj & {
     min?: number; // xs:int
     max?: number; // xs:int
     unit?: string; // anyURI
     val?: number; // xs:int
-  }
+  };
 
-  export interface List extends Obj {
+  export type List = Obj & {
     min?: number; // xs:int
     max?: number; // xs:int
     of?: Contract; // Default: obix:obj
-  }
+  };
 
-  export interface Op extends Obj {
+  export type Op = Obj & {
     in?: Contract; // Default: obix:Nil
     out?: Contract; // Default: obix:Nil
-  }
+  };
 
-  export interface Real extends Obj {
+  export type Real = Obj & {
     min?: number; // xs:double
     max?: number; // xs:double
     precision?: number; // xs:int
     unit?: string; // anyURI
     val?: number; // xs:double
-  }
+  };
 
-  export interface Ref extends Obj {}
+  export type Ref = Obj & {};
 
-  export interface RelTime extends Obj {
+  export type RelTime = Obj & {
     min?: string; // xs:duration
     max?: string; // xs:duration
     val?: string; // xs:duration
-  }
+  };
 
-  export interface Str extends Obj {
+  export type Str = Obj & {
     min?: number; // xs:int
     max?: number; // xs:int
     val?: string; // xs:string
-  }
+  };
 
-  export interface Uri extends Obj {
+  export type Uri = Obj & {
     val?: string; // xs:anyURI
-  }
+  };
 
   // Global Elements
 
-  export interface AttributeMapping {
+  export type AttributeMapping = {
     obj?: Obj;
     absTime?: AbsTime;
     bool?: Bool;
@@ -105,8 +105,7 @@ export namespace ObixAttributes {
     relTime?: RelTime;
     str?: Str;
     uri?: Uri;
-    [key: string]: any; // Allow for extra dynamic keys
-  }
+  };
 }
 
 export type ObixElementRoot = {
