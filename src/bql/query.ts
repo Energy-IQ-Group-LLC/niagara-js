@@ -1,5 +1,6 @@
 import { AxiosInstance, AxiosRequestConfig } from 'axios';
 import Papa from 'papaparse';
+import { BQLQueryResults } from '../types/query';
 
 //#region Errors
 class MissingBQLQuery extends Error {
@@ -14,8 +15,6 @@ class MissingBQLQuery extends Error {
   }
 }
 //#endregion Errors
-
-type BQLQueryResults<T = Record<string, string | number | boolean | null>> = Array<T>;
 
 export class BQLQueryInstance {
   axiosInstance: AxiosInstance;
