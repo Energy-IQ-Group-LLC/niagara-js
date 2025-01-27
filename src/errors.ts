@@ -1,5 +1,6 @@
 import { AxiosError } from 'axios';
 
+// TODO: refactor this
 export class HTTPError extends Error {
   friendlyError: string;
   inDepthError?: string;
@@ -62,19 +63,6 @@ export class InvalidTypeError extends Error {
     this.name = 'InvalidTypeError';
     this.friendlyError = this.message;
     this.inDepthError = 'Invalid Input Type:\nData Type of input does not match that of value trying to be written to';
-  }
-}
-
-// Unknown Data type
-export class UnknownTypeError extends Error {
-  friendlyError: string;
-  inDepthError: string;
-
-  constructor() {
-    super('Unknown Data Type');
-    this.name = 'UnknownTypeError';
-    this.friendlyError = this.message;
-    this.inDepthError = 'Error with Value Parsing: Unknown Data Type';
   }
 }
 
