@@ -3,11 +3,11 @@ import { createBQLAxiosInstance, createObixAxiosInstance } from './axios.js';
 // BQL Imports
 import { BQLQueryInstance } from './bql/query.js';
 // Obix Imports
-import { HistoryRequestInstance } from './obix/history.js';
+import { URL } from 'url';
+import { HistoryRequestInstance, PRESET_OPTIONS } from './obix/history.js';
 import { StandardRequestInstance } from './obix/standard.js';
 import { WatcherRequestInstance } from './obix/watcher.js';
 import { AxiosInstanceConfig } from './types/axios.js';
-import { URL } from 'url';
 
 export class NiagaraConnector {
   bql: ReturnType<typeof generateBQLFunctions>;
@@ -51,6 +51,7 @@ function generateObixFunctions(axiosInstanceConfig: AxiosInstanceConfig) {
     batchUrl: new URL(`${axiosInstance.defaults.baseURL}config`),
     batch: standardRequestInstance.batch.bind(standardRequestInstance),
     history: historyRequestInstance.historyRequest.bind(historyRequestInstance),
+    historyPresetOptions: PRESET_OPTIONS,
     historyRollup: historyRequestInstance.rollupRequest.bind(historyRequestInstance),
     about: standardRequestInstance.about.bind(standardRequestInstance),
     getUnit: standardRequestInstance.getUnit.bind(standardRequestInstance),

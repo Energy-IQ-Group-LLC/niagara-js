@@ -2,7 +2,7 @@ import { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { stripPaths } from '../helpers.js';
 import { QueryObject, HistoryPresetResponse, HistoryQueryResponse, HistoryRollupResponse } from '../types/history.js';
 
-const PRESET_OPTIONS = [
+export const PRESET_OPTIONS = [
   'today',
   'yesterday',
   'last24Hours',
