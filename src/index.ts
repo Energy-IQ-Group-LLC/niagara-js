@@ -9,6 +9,14 @@ import { StandardRequestInstance } from './obix/standard.js';
 import { WatcherRequestInstance } from './obix/watcher.js';
 import { AxiosInstanceConfig } from './types/axios.js';
 
+// Export types
+export * from './types/axios.js';
+export * from './types/history.js';
+export * from './types/obix.js';
+export * from './types/query.js';
+export * from './types/standard.js';
+export * from './types/watcher.js';
+
 export class NiagaraConnector {
   bql: ReturnType<typeof generateBQLFunctions>;
   obix: ReturnType<typeof generateObixFunctions>;
