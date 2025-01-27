@@ -1,4 +1,3 @@
-import { ATTRIBUTES_GROUP_NAME } from './constants.js';
 import { InvalidTypeError, PathError } from './errors.js';
 import { ObixAttributes, ObixElement } from './types/obix.js';
 
@@ -29,9 +28,9 @@ export function stripTrailingSlash(input: string) {
 }
 
 export const parseError = (error: ObixElement<ObixAttributes.Err>) => {
-  const errorDisplay = error?.[ATTRIBUTES_GROUP_NAME]?.display;
-  const errorReason = error?.[ATTRIBUTES_GROUP_NAME]?.is;
-  const errorHref = error?.[ATTRIBUTES_GROUP_NAME]?.href;
+  const errorDisplay = error?.$display;
+  const errorReason = error?.$is;
+  const errorHref = error?.$href;
 
   if (errorDisplay || errorReason) {
     if (errorReason?.includes('obix:BadUriErr') || errorDisplay?.includes('Path depth') || errorDisplay?.includes('Invalid name in path'))

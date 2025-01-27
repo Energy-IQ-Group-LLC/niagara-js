@@ -1,5 +1,3 @@
-import { ATTRIBUTES_GROUP_NAME } from '../constants.js';
-
 // Populated from this obix url: /obix/xsd
 export namespace ObixAttributes {
   // Simple Types
@@ -118,7 +116,7 @@ export type ObixElementRoot = {
  * This is the parsed xml payload format which also includes the standard obix tags and attributes.
  */
 export type ObixElement<T> = ObixElementRoot & {
-  [ATTRIBUTES_GROUP_NAME]?: T; // The attributes specific to this element
+  [key in keyof T as `$${string & key}`]: T[key]; // The attributes specific to this element
 };
 
 export interface ObixUnit {
