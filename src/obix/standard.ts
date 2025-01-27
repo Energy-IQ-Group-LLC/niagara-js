@@ -5,9 +5,11 @@ import { ObixAbout, ObixUnit } from '../types/standard.js';
 
 export class StandardRequestInstance {
   axiosInstance: AxiosInstance;
+  unitCache: Map<string, ObixUnit>;
 
   constructor(axiosInstance: AxiosInstance) {
     this.axiosInstance = axiosInstance;
+    this.unitCache = new Map();
   }
 
   async about(axiosConfig?: AxiosRequestConfig) {
@@ -24,9 +26,17 @@ export class StandardRequestInstance {
     { obixNSUnit, unitName }: { obixNSUnit: string; unitName?: string } | { obixNSUnit?: string; unitName: string },
     axiosConfig?: AxiosRequestConfig
   ) {
-    const unit = obixNSUnit?.split('/').pop();
-    const { data } = await this.axiosInstance.get<ObixUnit>(`units/${unit || unitName}/`, axiosConfig);
-    return data;
+    const unit = obixNSUnit?.split('/').pop() || unitName;
+    if (!unit) return null;
+
+    const cachedUnit = this.unitCache.get(unit);
+    if (cachedUnit) {
+      return cachedUnit;
+    } else {
+      const { data } = await this.axiosInstance.get<ObixUnit>(`units/${unit}/`, axiosConfig);
+      this.unitCache.set(unit, data);
+      return data;
+    }
   }
 
   async read<T = ObixXmlFriendlyJSON>({ path }: { path: string }, axiosConfig?: AxiosRequestConfig) {
