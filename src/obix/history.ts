@@ -1,23 +1,6 @@
-import dayjs from 'dayjs';
-import advancedFormat from 'dayjs/plugin/advancedFormat.js';
-import localizedFormat from 'dayjs/plugin/localizedFormat.js';
-import timezone from 'dayjs/plugin/timezone.js'; // dependent on utc plugin
-import utc from 'dayjs/plugin/utc.js';
-
-// Order matters here
-dayjs.extend(timezone);
-dayjs.extend(utc);
-dayjs.extend(advancedFormat);
-dayjs.extend(localizedFormat);
-
 import { AxiosInstance, AxiosRequestConfig } from 'axios';
-import { makeArray, stripPaths } from '../helpers.js';
-
-export interface QueryObject {
-  start: string | number | undefined;
-  end: string | number | undefined;
-  limit: string | number | undefined;
-}
+import { stripPaths } from '../helpers.js';
+import { QueryObject, HistoryPresetResponse, HistoryQueryResponse, HistoryRollupResponse } from '../types/history.js';
 
 const PRESET_OPTIONS = [
   'today',
@@ -85,8 +68,7 @@ export class HistoryRequestInstance {
 
   async historyRequest({ path, query }: { path: string; query: (typeof PRESET_OPTIONS)[number] | QueryObject }, axiosConfig?: AxiosRequestConfig) {
     if (!query) throw new MissingHistoryQuery();
-    path = stripPaths(path)[0];
-    let historyData;
+    const strippedPath = stripPaths(path)[0];
 
     // Check if query is a presetQuery or custom timestamps
     if (typeof query == 'string') {
@@ -95,9 +77,11 @@ export class HistoryRequestInstance {
       }
 
       // Call to get all preset queries
-      const { data: presetQueryData } = await this.axiosInstance.get(`histories/${path}`, axiosConfig);
-      query = presetQueryData.obj.ref.find((presetQuery: any) => presetQuery._attributes.name == query)?._attributes.href;
-      historyData = (await this.axiosInstance.get(`histories/${path}${query}`, axiosConfig)).data;
+      const { data: presetQueryData } = await this.axiosInstance.get<HistoryPresetResponse>(`histories/${strippedPath}`, axiosConfig);
+      //@ts-ignore
+      const queryHref = presetQueryData.nodes.find((node) => node.name == query).href as string;
+      const { data } = await this.axiosInstance.get<HistoryQueryResponse>(`histories/${strippedPath}${queryHref}`, axiosConfig);
+      return data;
     } else {
       if (query.start) {
         try {
@@ -119,37 +103,30 @@ export class HistoryRequestInstance {
         }
       }
 
-      historyData = (await this.axiosInstance.get(`histories/${path}/~historyQuery/`, { params: query, ...axiosConfig })).data;
+      const { data } = await this.axiosInstance.get<HistoryQueryResponse>(`histories/${strippedPath}/~historyQuery/`, {
+        params: query,
+        ...axiosConfig,
+      });
+      return data;
     }
-    return this.#parseHistoryDataHelper({ data: historyData.obj, path });
   }
 
-  #parseHistoryDataHelper({ data, path }: { data: any; path: string }) {
-    const timezone = data.obj.abstime._attributes.tz;
-    const limit = data.int._attributes.val;
-    // @ts-ignore
-    let start = data.abstime.find((abstime) => abstime._attributes.name == 'start')._attributes.val;
-    // @ts-ignore
-    let end = data.abstime.find((abstime) => abstime._attributes.name == 'end')._attributes.val;
-    // @ts-ignore
-    start = dayjs(data.abstime[0]._attributes.val).tz(timezone).format('LLLL z');
-    // @ts-ignore
-    end = dayjs(data.abstime[1]._attributes.val).tz(timezone).format('LLLL z');
+  async rollupRequest({ path, interval, query }: { path: string; interval: string | number; query?: QueryObject }, axiosConfig: AxiosRequestConfig) {
+    const strippedPath = stripPaths(path)[0];
 
-    const dataObjList = makeArray(data.list.obj);
-    const values = dataObjList.map((dataObj) => ({
-      // @ts-ignore
-      timestamp: dayjs(dataObj.abstime._attributes.val).tz(timezone).format('LLLL z'),
-      value: String(dataObj.real._attributes.val),
-    }));
+    const intervalPayload =
+      typeof interval == 'number' ? `<real name="interval" val="${interval}" />` : `<reltime name="interval" val="${interval}" />`;
 
-    return {
-      history: path,
-      start,
-      end,
-      limit,
-      timezone,
-      results: values,
-    };
+    const payload = `
+    <obj>
+      ${query?.limit ? `<int name="limit" val="${query.limit}" />` : ''}
+      ${query?.start ? `<abstime name="start" val="${query.start}"/>` : ''}
+      ${query?.limit ? `<int name="end" val="${query.end}" />` : ''}
+      ${intervalPayload}
+    </obj>
+    `;
+
+    const { data } = await this.axiosInstance.post<HistoryRollupResponse>(`histories/${strippedPath}/~historyRollup/`, payload, axiosConfig);
+    return data;
   }
 }

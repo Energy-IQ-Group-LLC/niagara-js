@@ -1,5 +1,43 @@
 import { InvalidTypeError, PathError } from './errors.js';
-import { ObixAttributes, ObixElement } from './types/obix.js';
+import { ObixAttributes, ObixElement, ObixElementRoot, ObixXmlFriendlyJSON } from './types/obix.js';
+
+export function transformXMLParsedToFriendlyJSON(payload: ObixElementRoot) {
+  // Recursive function to transform nodes
+  function transformNode(node: ObixElementRoot) {
+    const transformed: ObixXmlFriendlyJSON = {};
+    const nodes: (typeof transformed)[] = [];
+
+    // Iterate over the keys in the node
+    Object.entries(node).forEach(([key, value]) => {
+      const isAttribute = key.startsWith('$');
+      if (isAttribute) {
+        // Retain top-level properties starting with $
+        transformed[key.slice(1)] = value;
+      } else {
+        const typedKey = key as keyof ObixAttributes.AttributeMapping[keyof ObixAttributes.AttributeMapping];
+        // Add non-$ keys to the children array
+        if (Array.isArray(value)) {
+          value.forEach((item) => {
+            nodes.push({ ...transformNode(item), type: typedKey });
+          });
+        } else if (typeof value === 'object') {
+          nodes.push({ ...transformNode(value), type: typedKey });
+        }
+      }
+    });
+
+    // Add children only if there are any
+    if (nodes.length > 0) {
+      transformed.nodes = nodes;
+    }
+
+    return transformed;
+  }
+
+  // Start transformation from the root
+  const transformedData = transformNode(payload);
+  return transformedData.nodes?.[0];
+}
 
 export const stripPaths = (paths: string | string[]) => {
   const pathsArray = makeArray(paths);

@@ -2,7 +2,7 @@ import axios from 'axios';
 import https from 'https';
 import { CookieJar } from 'tough-cookie';
 import { BQLHTTPError, HTTPError } from './errors.js';
-import { parseError, stripTrailingSlash } from './helpers.js';
+import { parseError, stripTrailingSlash, transformXMLParsedToFriendlyJSON } from './helpers.js';
 import { parser } from './obix/xml.js';
 import { AxiosInstanceConfig } from './types/axios.js';
 import { ObixElementRoot } from './types/obix.js';
@@ -18,7 +18,8 @@ export function createObixAxiosInstance(instanceConfig: AxiosInstanceConfig) {
       if (parsedXml.err) {
         throw parseError(parsedXml.err[0]);
       }
-      response.data = parsedXml;
+
+      response.data = transformXMLParsedToFriendlyJSON(parsedXml);
       return response;
     },
     // Any status codes that falls outside the range of 2xx cause this function to trigger

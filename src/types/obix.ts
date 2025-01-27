@@ -107,9 +107,9 @@ export namespace ObixAttributes {
 }
 
 export type ObixElementRoot = {
-  [key in keyof ObixAttributes.AttributeMapping]?: ObixElement<ObixAttributes.AttributeMapping[key]>[]; // Explicitly include predefined keys
+  [K in keyof ObixAttributes.AttributeMapping]?: ObixElement<ObixAttributes.AttributeMapping[K]>[]; // Explicitly include predefined keys
 } & {
-  [key: string]: ObixElement<any>[] | undefined; // Allow for additional arbitrary keys
+  [key: string]: any; // Allow for additional arbitrary keys
 };
 
 /**
@@ -119,72 +119,17 @@ export type ObixElement<T> = ObixElementRoot & {
   [key in keyof T as `$${string & key}`]: T[key]; // The attributes specific to this element
 };
 
-export interface ObixUnit {
-  obj: {
-    [ATTRIBUTES_GROUP_NAME]: {
-      href: string;
-      is: 'obix:Unit';
-    };
-    str: {
-      [ATTRIBUTES_GROUP_NAME]: {
-        name: 'description' | 'symbol';
-        val: string;
-      };
-    }[];
-    obj: {
-      [ATTRIBUTES_GROUP_NAME]: {
-        name: 'dimension';
-      };
-      int: {
-        [ATTRIBUTES_GROUP_NAME]: {
-          name: 'kg' | 'm' | 'sec' | 'K' | 'A' | 'mol' | 'cd';
-          val: number;
-        };
-      }[];
-    }[];
-    real: {
-      [ATTRIBUTES_GROUP_NAME]: {
-        name: 'scale' | 'offset';
-        val: number;
-      };
-    }[];
-  }[];
-}
-
-//#region Obix Batch
-export interface ObixBatchIn {
-  list: {
-    [ATTRIBUTES_GROUP_NAME]: {
-      is: 'obix:BatchIn';
-    };
-    uri: BatchRead[] | BatchInvoke[] | BatchWrite[];
-  };
-}
-
-type BatchRead = {
-  [ATTRIBUTES_GROUP_NAME]: {
-    is: 'obix:Read';
-    val: string;
-  };
-};
-type BatchInvoke = ObixElementRoot & {
-  [ATTRIBUTES_GROUP_NAME]: {
-    is: 'obix:Invoke';
-    val: string;
-  };
-};
-type BatchWrite = ObixElementRoot & {
-  [ATTRIBUTES_GROUP_NAME]: {
-    is: 'obix:Write';
-    val: string;
-  };
-};
-
-export interface ObixBatchOut {
-  list: {
-    [ATTRIBUTES_GROUP_NAME]: {
-      of: 'obix:BatchOut';
-    };
-  } & ObixElementRoot;
-}
-//#endregion Obix Unit
+// EXAMPLE:
+// if (obixXmlFriendlyJSON.type == 'int') {
+//   obixXmlFriendlyJSON.max;
+// }
+// const intData = obixXmlFriendlyJSON as ObixXmlFriendlyJSON<'int'>;
+// const max = intData.max; // 'max' is now accessible
+export type ObixXmlFriendlyJSON<T extends keyof ObixAttributes.AttributeMapping = keyof ObixAttributes.AttributeMapping> = {
+  [key: string]: any;
+  nodes?: ObixXmlFriendlyJSON[]; // Recursive definition
+} & {
+  [K in T]: {
+    type?: K;
+  } & ObixAttributes.AttributeMapping[K];
+}[T];

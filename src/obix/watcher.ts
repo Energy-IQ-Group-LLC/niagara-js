@@ -1,7 +1,9 @@
 import { AxiosInstance, AxiosRequestConfig } from 'axios';
-import { UnknownTypeError } from '../errors.js';
-import { replaceSpecialChars, stripPaths } from '../helpers.js';
-import { buildOutputList } from './parsers/values.js';
+import { stripPaths } from '../helpers.js';
+import { LeaseResponse, WatchCreateResponse, WatcherNullResponse, WatcherResponse } from '../types/watcher.js';
+
+// TODO: could make a map of paths to add values too so it can be easier to see the data returned.
+// TODO: could also attach delete function to each instance of the path just so its easier to delete the path.
 
 export class WatcherRequestInstance {
   axiosInstance: AxiosInstance;
@@ -11,88 +13,71 @@ export class WatcherRequestInstance {
   }
 
   async watcherUpdateDefaultLease(leaseTime: string | number, axiosConfig?: AxiosRequestConfig) {
-    await this.axiosInstance.put('/watchService/defaultLeaseTime/', this.#buildLeaseBody(leaseTime), axiosConfig);
+    const payload = typeof leaseTime == 'number' ? `<real val="${leaseTime}" />` : `<reltime val="${leaseTime}" />`;
+    const { data } = await this.axiosInstance.put<LeaseResponse>('/watchService/defaultLeaseTime/', payload, axiosConfig);
+    return data;
   }
 
   async watcherCreate(axiosConfig?: AxiosRequestConfig) {
-    const { data: watchCreateData } = await this.axiosInstance.post('/watchService/make', undefined, axiosConfig);
-    const watcherName = watchCreateData.obj._attributes.href.split('/').at(-2);
-    const watcherOperations = watchCreateData.obj.op;
-    const findAtt = this.#findAttributeByName.bind(this, watcherOperations);
+    const { data: watchCreateData } = await this.axiosInstance.post<WatchCreateResponse>('/watchService/make', undefined, axiosConfig);
+    const watcherName = watchCreateData.href.split('/').at(-2);
     return {
       name: watcherName,
-      add: this.#watcherAdd.bind(this, findAtt('add')?.href),
-      remove: this.#watcherRemovePath.bind(this, findAtt('remove')?.href),
-      delete: this.#watcherDelete.bind(this, findAtt('delete')?.href),
-      pollChanges: this.#watcherPollChanges.bind(this, findAtt('pollChanges')?.href),
-      pollRefresh: this.#watcherPollRefresh.bind(this, findAtt('pollRefresh')?.href),
-      lease: this.#watcherUpdateLease.bind(this, watchCreateData.obj.reltime._attributes.href),
+      add: this.#watcherAdd.bind(this, watchCreateData.nodes.find((node) => node.name == 'add')?.href ?? ''),
+      remove: this.#watcherRemovePath.bind(this, watchCreateData.nodes.find((node) => node.name == 'remove')?.href ?? ''),
+      pollChanges: this.#watcherPollChanges.bind(this, watchCreateData.nodes.find((node) => node.name == 'pollChanges')?.href ?? ''),
+      pollRefresh: this.#watcherPollRefresh.bind(this, watchCreateData.nodes.find((node) => node.name == 'pollRefresh')?.href ?? ''),
+      delete: this.#watcherDelete.bind(this, watchCreateData.nodes.find((node) => node.name == 'delete')?.href ?? ''),
+      lease: this.#watcherUpdateLease.bind(this, watchCreateData.nodes.find((node) => node.name == 'lease')?.href ?? ''),
     };
   }
 
   async #watcherAdd(endpoint: string, paths: string | string[], axiosConfig?: AxiosRequestConfig) {
-    paths = stripPaths(paths);
-    const { data } = await this.axiosInstance.post(
+    const strippedPaths = stripPaths(paths);
+    const { data } = await this.axiosInstance.post<WatcherResponse>(
       endpoint,
-      `<obj>
-          <list>
-            ${paths.map((p) => `<uri val="/obix/config/${replaceSpecialChars(p)}/" />`).join('\n')}
+      `<obj is="obix:WatchIn">
+          <list names="hrefs">
+            ${strippedPaths.map((p) => `<uri val="/obix/config/${p}/" />`).join('\n')}
           </list>
         </obj>`,
       axiosConfig
     );
-    return this.#buildOutputList(data);
+    return data.nodes[0].nodes;
   }
 
   async #watcherRemovePath(endpoint: string, paths: string | string[], axiosConfig?: AxiosRequestConfig) {
-    paths = stripPaths(paths);
-    await this.axiosInstance.post(
+    const strippedPaths = stripPaths(paths);
+    const { data } = await this.axiosInstance.post<WatcherNullResponse>(
       endpoint,
-      `<obj>
-          <list>
-            ${paths.map((p) => `<uri val="/obix/config/${replaceSpecialChars(p)}/" />`).join('\n')}
+      `<obj is="obix:WatchIn">
+          <list names="hrefs">
+            ${strippedPaths.map((p) => `<uri val="/obix/config/${p}/" />`).join('\n')}
           </list>
         </obj>`,
       axiosConfig
     );
-    return;
+    return data;
   }
 
   async #watcherDelete(endpoint: string, axiosConfig?: AxiosRequestConfig) {
-    await this.axiosInstance.post(endpoint, undefined, axiosConfig);
-    return;
+    const { data } = await this.axiosInstance.post<WatcherNullResponse>(endpoint, undefined, axiosConfig);
+    return data;
   }
 
   async #watcherPollChanges(endpoint: string, axiosConfig?: AxiosRequestConfig) {
-    const { data } = await this.axiosInstance.post(endpoint, undefined, axiosConfig);
-    return this.#buildOutputList(data);
+    const { data } = await this.axiosInstance.post<WatcherResponse>(endpoint, undefined, axiosConfig);
+    return data.nodes[0].nodes;
   }
 
   async #watcherPollRefresh(endpoint: string, axiosConfig?: AxiosRequestConfig) {
-    const { data } = await this.axiosInstance.post(endpoint, undefined, axiosConfig);
-    return this.#buildOutputList(data);
+    const { data } = await this.axiosInstance.post<WatcherResponse>(endpoint, undefined, axiosConfig);
+    return data.nodes[0].nodes;
   }
 
   async #watcherUpdateLease(endpoint: string, leaseTime: string | number, axiosConfig?: AxiosRequestConfig) {
-    await this.axiosInstance.put(endpoint, this.#buildLeaseBody(leaseTime), axiosConfig);
-    return;
-  }
-
-  #findAttributeByName(dataArray: any[], name: string) {
-    return dataArray.find((d) => d._attributes.name == name)?._attributes;
-  }
-
-  #buildLeaseBody(leaseTime: string | number) {
-    if (Number.isInteger(Number(leaseTime))) {
-      return `<real val="${Number(leaseTime)}" />`;
-    } else if (typeof leaseTime == 'string') {
-      return `<reltime val="${leaseTime}" />`;
-    } else {
-      throw new UnknownTypeError();
-    }
-  }
-
-  #buildOutputList(data: any) {
-    return buildOutputList(data).map((v) => ({ ...v, action: 'read' }));
+    const payload = typeof leaseTime == 'number' ? `<real val="${leaseTime}" />` : `<reltime val="${leaseTime}" />`;
+    const { data } = await this.axiosInstance.put<LeaseResponse>(endpoint, payload, axiosConfig);
+    return data;
   }
 }
