@@ -22,21 +22,21 @@
     ".": {
       "require": {
         "default": "./dist/cjs/index.js",
-        "types": "./dist/cjs/index.d.js"
+        "types": "./dist/cjs/index.d.ts"
       },
       "import": {
         "default": "./dist/esm/index.js",
-        "types": "./dist/esm/index.d.js"
+        "types": "./dist/esm/index.d.ts"
       }
     },
     "./auth": {
       "require": {
         "default": "./dist/cjs/auth.js",
-        "types": "./dist/cjs/auth.d.js"
+        "types": "./dist/cjs/auth.d.ts"
       },
       "import": {
         "default": "./dist/esm/auth.js",
-        "types": "./dist/esm/auth.d.js"
+        "types": "./dist/esm/auth.d.ts"
       }
     }
   },
