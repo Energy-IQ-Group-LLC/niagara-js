@@ -1,4 +1,5 @@
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 import https from 'https';
 import { JSDOM, ResourceLoader } from 'jsdom';
 import vm from 'vm';
@@ -6,14 +7,24 @@ import { stripTrailingSlash } from './helpers.js';
 
 const axiosIgnoreCertError = axios.create({
   httpsAgent: new https.Agent({ rejectUnauthorized: false }),
+  timeout: 3000,
 });
+
+class NotAuthorizedError extends Error {
+  constructor() {
+    super('Not Authorized');
+    this.name = 'NotAuthorizedError';
+  }
+}
 
 axiosIgnoreCertError.interceptors.response.use((response) => {
   if (typeof response.data == 'string' && response.data.includes('login/loginN4.js')) {
-    throw new Error('Not Authorized');
+    throw new NotAuthorizedError();
   }
   return response;
 });
+
+axiosRetry(axiosIgnoreCertError, { retries: 3 });
 
 export async function getDigestAuthLoginCookies(siteUrl: string, { username, password }: { username: string; password: string }) {
   const siteUrlFormatted = stripTrailingSlash(siteUrl);
@@ -91,6 +102,7 @@ export async function isSessionCookieValid(siteUrl: string, sessionCookieString:
     });
     return true;
   } catch (error) {
+    console.error(error);
     return false;
   }
 }
