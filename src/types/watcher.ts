@@ -68,7 +68,7 @@ export type WatcherResponse = {
     {
       name: 'values';
       of: 'obix:obj';
-      nodes: ObixXmlFriendlyJSON[];
+      nodes?: ObixXmlFriendlyJSON[];
       type: 'list';
     }
   ];
