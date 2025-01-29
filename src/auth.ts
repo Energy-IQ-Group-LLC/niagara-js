@@ -50,7 +50,7 @@ export async function getDigestAuthLoginCookies(siteUrl: string, { username, pas
         // @ts-ignore
         ok: (response) => resolve(response),
         // @ts-ignore
-        fail: (error) => reject(error),
+        fail: () => reject('Could not authenticate'),
       });
     });
 
