@@ -7,7 +7,7 @@ import { stripTrailingSlash } from './helpers.js';
 
 const axiosIgnoreCertError = axios.create({
   httpsAgent: new https.Agent({ rejectUnauthorized: false }),
-  timeout: 3000,
+  timeout: 10000,
 });
 
 class NotAuthorizedError extends Error {
