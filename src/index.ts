@@ -66,7 +66,9 @@ function generateObixFunctions(axiosInstanceConfig: AxiosInstanceConfig) {
     read: standardRequestInstance.read.bind(standardRequestInstance),
     invoke: standardRequestInstance.invoke.bind(standardRequestInstance),
     write: standardRequestInstance.write.bind(standardRequestInstance),
+    watchers: watcherRequestInstance.watchers,
     watcherCreate: watcherRequestInstance.watcherCreate.bind(watcherRequestInstance),
+    watchersRefreshInstances: watcherRequestInstance.watchersRefreshInstances.bind(watcherRequestInstance),
     watcherUpdateDefaultLease: watcherRequestInstance.watcherUpdateDefaultLease.bind(watcherRequestInstance),
   };
 }

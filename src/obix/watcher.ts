@@ -1,12 +1,13 @@
 import { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { stripPaths } from '../helpers.js';
-import { LeaseResponse, WatchCreateResponse, WatcherNullResponse, WatcherResponse } from '../types/watcher.js';
+import { LeaseResponse, WatchDefinitionResponse, WatcherNullResponse, WatcherResponse, WatcherServiceResponse } from '../types/watcher.js';
 
 // TODO: could make a map of paths to add values too so it can be easier to see the data returned.
 // TODO: could also attach delete function to each instance of the path just so its easier to delete the path.
 
 export class WatcherRequestInstance {
   axiosInstance: AxiosInstance;
+  watchers: Record<string, Awaited<ReturnType<WatcherRequestInstance['watcherCreate']>>> = {};
 
   constructor(axiosInstance: AxiosInstance) {
     this.axiosInstance = axiosInstance;
@@ -18,18 +19,39 @@ export class WatcherRequestInstance {
     return data;
   }
 
+  async watchersRefreshInstances(axiosConfig?: AxiosRequestConfig) {
+    const { data } = await this.axiosInstance.get<WatcherServiceResponse>('/watchService', axiosConfig);
+    const activeWatchers = data.nodes.filter((node): node is Extract<typeof node, { is: 'obix:Watch' }> => 'is' in node && node.is === 'obix:Watch');
+    // Clear out all this.watchers
+    this.watchers = {};
+    await Promise.all(
+      activeWatchers.map(async (watcher) => {
+        const { data } = await this.axiosInstance.get<WatchDefinitionResponse>(`/watchService/${watcher.href}`, axiosConfig);
+        this.#createWatcherInstance(data);
+      })
+    );
+    return this.watchers;
+  }
+
   async watcherCreate(axiosConfig?: AxiosRequestConfig) {
-    const { data: watchCreateData } = await this.axiosInstance.post<WatchCreateResponse>('/watchService/make', undefined, axiosConfig);
-    const watcherName = watchCreateData.href.split('/').at(-2);
-    return {
+    const { data: watchCreateData } = await this.axiosInstance.post<WatchDefinitionResponse>('/watchService/make', undefined, axiosConfig);
+    return this.#createWatcherInstance(watchCreateData);
+  }
+
+  #createWatcherInstance(watcherDefinitionResponse: WatchDefinitionResponse) {
+    const watcherName = watcherDefinitionResponse.href.split('/').at(-2) as string;
+    const watcherUrl = `${this.axiosInstance.defaults.baseURL as string}watchService/${watcherName}/`;
+    const watcher = {
       name: watcherName,
-      add: this.#watcherAdd.bind(this, watchCreateData.nodes.find((node) => node.name == 'add')?.href ?? ''),
-      remove: this.#watcherRemovePath.bind(this, watchCreateData.nodes.find((node) => node.name == 'remove')?.href ?? ''),
-      pollChanges: this.#watcherPollChanges.bind(this, watchCreateData.nodes.find((node) => node.name == 'pollChanges')?.href ?? ''),
-      pollRefresh: this.#watcherPollRefresh.bind(this, watchCreateData.nodes.find((node) => node.name == 'pollRefresh')?.href ?? ''),
-      delete: this.#watcherDelete.bind(this, watchCreateData.nodes.find((node) => node.name == 'delete')?.href ?? ''),
-      lease: this.#watcherUpdateLease.bind(this, watchCreateData.nodes.find((node) => node.name == 'lease')?.href ?? ''),
+      add: this.#watcherAdd.bind(this, `${watcherUrl}add/`),
+      remove: this.#watcherRemovePath.bind(this, `${watcherUrl}remove/`),
+      pollChanges: this.#watcherPollChanges.bind(this, `${watcherUrl}pollChanges/`),
+      pollRefresh: this.#watcherPollRefresh.bind(this, `${watcherUrl}pollRefresh/`),
+      delete: this.#watcherDelete.bind(this, `${watcherUrl}delete/`, watcherName),
+      lease: this.#watcherUpdateLease.bind(this, `${watcherUrl}lease/`),
     };
+    this.watchers[watcherName] = watcher;
+    return watcher;
   }
 
   async #watcherAdd(endpoint: string, paths: string | string[], axiosConfig?: AxiosRequestConfig) {
@@ -43,7 +65,7 @@ export class WatcherRequestInstance {
         </obj>`,
       axiosConfig
     );
-    return data.nodes[0].nodes;
+    return data.nodes[0].nodes || [];
   }
 
   async #watcherRemovePath(endpoint: string, paths: string | string[], axiosConfig?: AxiosRequestConfig) {
@@ -60,19 +82,20 @@ export class WatcherRequestInstance {
     return data;
   }
 
-  async #watcherDelete(endpoint: string, axiosConfig?: AxiosRequestConfig) {
+  async #watcherDelete(endpoint: string, watcherName: string, axiosConfig?: AxiosRequestConfig) {
     const { data } = await this.axiosInstance.post<WatcherNullResponse>(endpoint, undefined, axiosConfig);
+    delete this.watchers[watcherName];
     return data;
   }
 
   async #watcherPollChanges(endpoint: string, axiosConfig?: AxiosRequestConfig) {
     const { data } = await this.axiosInstance.post<WatcherResponse>(endpoint, undefined, axiosConfig);
-    return data.nodes[0].nodes;
+    return data.nodes[0].nodes || [];
   }
 
   async #watcherPollRefresh(endpoint: string, axiosConfig?: AxiosRequestConfig) {
     const { data } = await this.axiosInstance.post<WatcherResponse>(endpoint, undefined, axiosConfig);
-    return data.nodes[0].nodes;
+    return data.nodes[0].nodes || [];
   }
 
   async #watcherUpdateLease(endpoint: string, leaseTime: string | number, axiosConfig?: AxiosRequestConfig) {

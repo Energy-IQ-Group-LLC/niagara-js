@@ -9,7 +9,39 @@ export type LeaseResponse = {
   type: 'reltime';
 };
 
-export type WatchCreateResponse = {
+export type WatcherServiceResponse = {
+  href: string;
+  is: 'obix:WatchService';
+  display: 'Obix Watch Service';
+  nodes: [
+    {
+      name: 'make';
+      href: 'make/';
+      in: 'obix:Nil';
+      out: 'obix:Watch';
+      type: 'op';
+    },
+    {
+      name: 'defaultLeaseTime';
+      val: string;
+      href: 'defaultLeaseTime/';
+      display: string;
+      displayName: 'Default Lease Time';
+      writable: true;
+      type: 'reltime';
+    },
+    ...Array<{
+      name: string;
+      href: string;
+      is: 'obix:Watch';
+      display: 'Obix Watch';
+      type: 'ref';
+    }>
+  ];
+  type: 'obj';
+};
+
+export type WatchDefinitionResponse = {
   href: string;
   is: 'obix:Watch';
   display: 'Obix Watch';
