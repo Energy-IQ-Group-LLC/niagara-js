@@ -1,6 +1,6 @@
 import { AxiosInstance, AxiosRequestConfig } from 'axios';
 import Papa from 'papaparse';
-import { BQLQueryResults } from '../types/query';
+import { BQLQueryResult } from '../types/query';
 
 //#region Errors
 class MissingBQLQuery extends Error {
@@ -23,14 +23,14 @@ export class BQLQueryInstance {
     this.axiosInstance = axiosInstance;
   }
 
-  async bqlQuery<T>(query: string, axiosConfig?: AxiosRequestConfig) {
+  async bqlQuery<T = BQLQueryResult>(query: string, axiosConfig?: AxiosRequestConfig): Promise<T[]> {
     if (!query) {
       throw new MissingBQLQuery();
     }
 
     const { data } = await this.axiosInstance.get<string>(`ord?${query}|view:file:ITableToCsv`, axiosConfig);
 
-    const parsedResult = Papa.parse<BQLQueryResults<T>>(data, {
+    const parsedResult = Papa.parse<T>(data, {
       dynamicTyping: true,
       header: true,
       skipEmptyLines: 'greedy',
