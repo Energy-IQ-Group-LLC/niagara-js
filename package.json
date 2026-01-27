@@ -31,12 +31,12 @@
     },
     "./auth": {
       "require": {
-        "default": "./dist/cjs/auth.js",
-        "types": "./dist/cjs/auth.d.ts"
+        "default": "./dist/cjs/auth/auth.js",
+        "types": "./dist/cjs/auth/auth.d.ts"
       },
       "import": {
-        "default": "./dist/esm/auth.js",
-        "types": "./dist/esm/auth.d.ts"
+        "default": "./dist/esm/auth/auth.js",
+        "types": "./dist/esm/auth/auth.d.ts"
       }
     }
   },
@@ -58,6 +58,7 @@
     "axios": "^1.6.2",
     "axios-retry": "^4.5.0",
     "fast-xml-parser": "^4.5.1",
+    "http-cookie-agent": "^7.0.3",
     "jsdom": "^25.0.1",
     "papaparse": "^5.4.1",
     "tough-cookie": "^5.0.0"
