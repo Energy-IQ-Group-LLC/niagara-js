@@ -59,12 +59,10 @@
     "axios-retry": "^4.5.0",
     "fast-xml-parser": "^4.5.1",
     "http-cookie-agent": "^7.0.3",
-    "jsdom": "^25.0.1",
     "papaparse": "^5.4.1",
     "tough-cookie": "^5.0.0"
   },
   "devDependencies": {
-    "@types/jsdom": "^21.1.7",
     "@types/node": "^22.10.2",
     "@types/papaparse": "^5.3.15",
     "eslint": "^8.30.0",
