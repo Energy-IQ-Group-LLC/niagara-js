@@ -1,16 +1,16 @@
-import { Cookie } from 'tough-cookie';
+import { CookieJar } from 'tough-cookie';
 import { createBQLAxiosInstance, createObixAxiosInstance } from './axios.js';
 // BQL Imports
 import { BQLQueryInstance } from './bql/query.js';
 // Obix Imports
 import { URL } from 'url';
+import { type AxiosInstanceConfig } from './axios.js';
 import { HistoryRequestInstance, PRESET_OPTIONS } from './obix/history.js';
 import { StandardRequestInstance } from './obix/standard.js';
 import { WatcherRequestInstance } from './obix/watcher.js';
-import { AxiosInstanceConfig } from './types/axios.js';
 
-// Export types
-export * from './types/axios.js';
+// Exports
+export { type AxiosInstanceConfig } from './axios.js';
 export * from './types/history.js';
 export * from './types/obix.js';
 export * from './types/query.js';
@@ -20,19 +20,20 @@ export * from './types/watcher.js';
 export class NiagaraConnector {
   bql: ReturnType<typeof generateBQLFunctions>;
   obix: ReturnType<typeof generateObixFunctions>;
+  #axiosInstanceConfig: AxiosInstanceConfig;
 
-  constructor(axiosInstanceConfig: AxiosInstanceConfig) {
-    this.bql = generateBQLFunctions(axiosInstanceConfig);
-    this.obix = generateObixFunctions(axiosInstanceConfig);
+  constructor(axiosInstanceConfig: Omit<AxiosInstanceConfig, 'cookieJar'> & { cookieJar?: CookieJar }) {
+    this.#axiosInstanceConfig = { ...axiosInstanceConfig, cookieJar: axiosInstanceConfig.cookieJar ?? new CookieJar() };
+    this.bql = generateBQLFunctions(this.#axiosInstanceConfig);
+    this.obix = generateObixFunctions(this.#axiosInstanceConfig);
   }
 
-  updateSessionCookie(sessionCookie: string | Cookie) {
-    if (this.bql.axiosInstance.defaults.baseURL) {
-      this.bql.axiosInstance.cookieJar?.setCookieSync(sessionCookie, this.bql.axiosInstance.defaults.baseURL);
-    }
-    if (this.obix.axiosInstance.defaults.baseURL) {
-      this.obix.axiosInstance.cookieJar?.setCookieSync(sessionCookie, this.obix.axiosInstance.defaults.baseURL);
-    }
+  get cookieJar(): CookieJar {
+    return this.#axiosInstanceConfig.cookieJar;
+  }
+
+  get cookies(): NiagaraCookies {
+    return Object.fromEntries(this.cookieJar.getCookiesSync(this.#axiosInstanceConfig.baseUrl).map((c) => [c.key, c.value]));
   }
 }
 
@@ -71,4 +72,14 @@ function generateObixFunctions(axiosInstanceConfig: AxiosInstanceConfig) {
     watchersRefreshInstances: watcherRequestInstance.watchersRefreshInstances.bind(watcherRequestInstance),
     watcherUpdateDefaultLease: watcherRequestInstance.watcherUpdateDefaultLease.bind(watcherRequestInstance),
   };
+}
+
+export type NiagaraCookies = Record<string, string>;
+
+export function createCookieJarFromCookies({ baseUrl, cookies }: { baseUrl: string; cookies: NiagaraCookies }): CookieJar {
+  const jar = new CookieJar();
+  for (const [k, v] of Object.entries(cookies)) {
+    jar.setCookieSync(`${k}=${v}`, baseUrl);
+  }
+  return jar;
 }

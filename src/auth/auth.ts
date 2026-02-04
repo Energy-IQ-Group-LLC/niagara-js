@@ -1,8 +1,8 @@
 import axios, { type AxiosInstance } from 'axios';
 import { HttpCookieAgent, HttpsCookieAgent } from 'http-cookie-agent/http';
 import { CookieJar } from 'tough-cookie';
+import { createCookieJarFromCookies, type NiagaraCookies } from '../index.js';
 import { ScramSha256Client } from './ScramSha256Client';
-// import axiosRetry from 'axios-retry';
 
 declare module 'axios' {
   interface AxiosRequestConfig {
@@ -48,8 +48,6 @@ type NiagaraSession = {
   cookieJar: CookieJar;
   csrfToken: string;
 };
-
-type NiagaraCookies = Record<string, string>;
 
 type LoginParams = { baseUrl: string; username: string; password: string };
 
@@ -162,14 +160,6 @@ async function validate(params: PostTimeout): Promise<boolean> {
   } catch {
     return false;
   }
-}
-
-function createCookieJarFromCookies({ baseUrl, cookies }: { baseUrl: string; cookies: NiagaraCookies }): CookieJar {
-  const jar = new CookieJar();
-  for (const [k, v] of Object.entries(cookies)) {
-    jar.setCookieSync(`${k}=${v}`, baseUrl);
-  }
-  return jar;
 }
 
 export const digestAuth = {

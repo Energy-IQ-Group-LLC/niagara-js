@@ -1,15 +1,54 @@
 import axios from 'axios';
-import https from 'https';
+import axiosRetry, { type IAxiosRetryConfig } from 'axios-retry';
+import { HttpCookieAgent, HttpsCookieAgent } from 'http-cookie-agent/http';
 import { CookieJar } from 'tough-cookie';
 import { BQLHTTPError, HTTPError } from './errors.js';
 import { parseError, stripTrailingSlash, transformXMLParsedToFriendlyJSON } from './helpers.js';
 import { parser } from './obix/xml.js';
-import { AxiosInstanceConfig } from './types/axios.js';
 import { ObixElementRoot } from './types/obix.js';
 
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    jar?: CookieJar;
+  }
+}
+
+export type AxiosInstanceConfig = {
+  baseUrl: string;
+  cookieJar: CookieJar;
+  username?: string;
+  password?: string;
+  timeout?: number;
+  axiosRetryConfig: IAxiosRetryConfig;
+};
+
+// TODO: refactor error handling
+
+function createDefaultAxiosInstance({ baseUrl, cookieJar, username, password, timeout, axiosRetryConfig }: AxiosInstanceConfig) {
+  const axiosInstance = axios.create({
+    baseURL: baseUrl,
+    timeout,
+    jar: cookieJar,
+    withCredentials: true,
+    httpAgent: new HttpCookieAgent({ cookies: { jar: cookieJar }, keepAlive: true, maxSockets: 10, maxFreeSockets: 5 }),
+    httpsAgent: new HttpsCookieAgent({
+      cookies: { jar: cookieJar },
+      rejectUnauthorized: false,
+      keepAlive: true,
+      maxSockets: 10,
+      maxFreeSockets: 5,
+    }),
+    ...(username && { auth: { username, password: password || '' } }), // allows empty password
+  });
+
+  if (axiosRetryConfig) axiosRetry(axiosInstance, axiosRetryConfig);
+
+  return axiosInstance;
+}
+
 export function createObixAxiosInstance(instanceConfig: AxiosInstanceConfig) {
-  const strippedUrl = stripTrailingSlash(instanceConfig.url);
-  const axiosInstance = createDefaultAxiosInstance({ ...instanceConfig, url: `${strippedUrl}/obix/` });
+  const strippedUrl = stripTrailingSlash(instanceConfig.baseUrl);
+  const axiosInstance = createDefaultAxiosInstance({ ...instanceConfig, baseUrl: `${strippedUrl}/obix/` });
 
   axiosInstance.interceptors.response.use(
     // Any status code that lie within the range of 2xx cause this function to trigger
@@ -45,39 +84,6 @@ export function createBQLAxiosInstance(instanceConfig: AxiosInstanceConfig) {
       throw new BQLHTTPError(error);
     }
   );
-
-  return axiosInstance;
-}
-
-function createDefaultAxiosInstance({ url, username, password, sessionCookie, timeout = 5000 }: AxiosInstanceConfig) {
-  const axiosInstance = axios.create({
-    baseURL: url,
-    timeout,
-    httpsAgent: new https.Agent({ rejectUnauthorized: false }),
-  });
-
-  const cookieJar = new CookieJar();
-  axiosInstance.cookieJar = cookieJar;
-
-  if (sessionCookie) cookieJar.setCookieSync(sessionCookie, url);
-  if (username && password) axiosInstance.defaults.auth = { username, password };
-
-  //#region Set up cookie interceptors
-  axiosInstance.interceptors.response.use((response) => {
-    const setCookieHeader = response.headers['set-cookie'];
-    if (setCookieHeader) {
-      setCookieHeader.forEach((cookie) => {
-        if (response.config.baseURL) cookieJar.setCookieSync(cookie, response.config.baseURL);
-      });
-    }
-    return response;
-  });
-
-  axiosInstance.interceptors.request.use((request) => {
-    if (request.baseURL) request.headers.Cookie = cookieJar.getCookieStringSync(request.baseURL);
-    return request;
-  });
-  //#endregion
 
   return axiosInstance;
 }
