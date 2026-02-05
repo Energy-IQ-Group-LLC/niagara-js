@@ -11,6 +11,7 @@ import { WatcherRequestInstance } from './obix/watcher.js';
 
 // Exports
 export { type AxiosInstanceConfig } from './axios.js';
+export * from './errors.js';
 export * from './types/history.js';
 export * from './types/obix.js';
 export * from './types/query.js';
@@ -68,6 +69,7 @@ function generateObixFunctions(axiosInstanceConfig: AxiosInstanceConfig) {
     invoke: standardRequestInstance.invoke.bind(standardRequestInstance),
     write: standardRequestInstance.write.bind(standardRequestInstance),
     watchers: watcherRequestInstance.watchers,
+    watcherCreateInstance: watcherRequestInstance.createInstance.bind(watcherRequestInstance),
     watcherCreate: watcherRequestInstance.watcherCreate.bind(watcherRequestInstance),
     watchersRefreshInstances: watcherRequestInstance.watchersRefreshInstances.bind(watcherRequestInstance),
     watcherUpdateDefaultLease: watcherRequestInstance.watcherUpdateDefaultLease.bind(watcherRequestInstance),

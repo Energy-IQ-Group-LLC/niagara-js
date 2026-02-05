@@ -13,6 +13,19 @@ export class WatcherRequestInstance {
     this.axiosInstance = axiosInstance;
   }
 
+  createInstance(watcherName: string) {
+    const watcherUrl = `${this.axiosInstance.defaults.baseURL!}watchService/${watcherName}/`;
+    return {
+      name: watcherName,
+      add: this.#watcherAdd.bind(this, `${watcherUrl}add/`),
+      remove: this.#watcherRemovePath.bind(this, `${watcherUrl}remove/`),
+      pollChanges: this.#watcherPollChanges.bind(this, `${watcherUrl}pollChanges/`),
+      pollRefresh: this.#watcherPollRefresh.bind(this, `${watcherUrl}pollRefresh/`),
+      delete: this.#watcherDelete.bind(this, `${watcherUrl}delete/`, watcherName),
+      lease: this.#watcherUpdateLease.bind(this, `${watcherUrl}lease/`),
+    };
+  }
+
   async watcherUpdateDefaultLease(leaseTime: string | number, axiosConfig?: AxiosRequestConfig) {
     const payload = typeof leaseTime == 'number' ? `<real val="${leaseTime}" />` : `<reltime val="${leaseTime}" />`;
     const { data } = await this.axiosInstance.put<LeaseResponse>('/watchService/defaultLeaseTime/', payload, axiosConfig);
@@ -27,7 +40,7 @@ export class WatcherRequestInstance {
     await Promise.all(
       activeWatchers.map(async (watcher) => {
         const { data } = await this.axiosInstance.get<WatchDefinitionResponse>(`/watchService/${watcher.href}`, axiosConfig);
-        this.#createWatcherInstance(data);
+        this.#createAndAssignWatcherInstance(data);
       })
     );
     return this.watchers;
@@ -35,23 +48,14 @@ export class WatcherRequestInstance {
 
   async watcherCreate(axiosConfig?: AxiosRequestConfig) {
     const { data: watchCreateData } = await this.axiosInstance.post<WatchDefinitionResponse>('/watchService/make', undefined, axiosConfig);
-    return this.#createWatcherInstance(watchCreateData);
+    return this.#createAndAssignWatcherInstance(watchCreateData);
   }
 
-  #createWatcherInstance(watcherDefinitionResponse: WatchDefinitionResponse) {
+  #createAndAssignWatcherInstance(watcherDefinitionResponse: WatchDefinitionResponse) {
     const watcherName = watcherDefinitionResponse.href.split('/').at(-2) as string;
-    const watcherUrl = `${this.axiosInstance.defaults.baseURL as string}watchService/${watcherName}/`;
-    const watcher = {
-      name: watcherName,
-      add: this.#watcherAdd.bind(this, `${watcherUrl}add/`),
-      remove: this.#watcherRemovePath.bind(this, `${watcherUrl}remove/`),
-      pollChanges: this.#watcherPollChanges.bind(this, `${watcherUrl}pollChanges/`),
-      pollRefresh: this.#watcherPollRefresh.bind(this, `${watcherUrl}pollRefresh/`),
-      delete: this.#watcherDelete.bind(this, `${watcherUrl}delete/`, watcherName),
-      lease: this.#watcherUpdateLease.bind(this, `${watcherUrl}lease/`),
-    };
-    this.watchers[watcherName] = watcher;
-    return watcher;
+    const watcherInstance = this.createInstance(watcherName);
+    this.watchers[watcherName] = watcherInstance;
+    return watcherInstance;
   }
 
   async #watcherAdd(endpoint: string, paths: string | string[], axiosConfig?: AxiosRequestConfig) {
