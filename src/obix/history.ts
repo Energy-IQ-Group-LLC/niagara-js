@@ -60,10 +60,10 @@ class InvalidHistoryQueryParameter extends Error {
 //#endregion Errors
 
 export class HistoryRequestInstance {
-  axiosInstance: AxiosInstance;
+  private axios: AxiosInstance;
 
-  constructor(axiosInstance: AxiosInstance) {
-    this.axiosInstance = axiosInstance;
+  constructor(axios: AxiosInstance) {
+    this.axios = axios;
   }
 
   async historyRequest({ path, query }: { path: string; query: (typeof PRESET_OPTIONS)[number] | QueryObject }, axiosConfig?: AxiosRequestConfig) {
@@ -77,10 +77,10 @@ export class HistoryRequestInstance {
       }
 
       // Call to get all preset queries
-      const { data: presetQueryData } = await this.axiosInstance.get<HistoryPresetResponse>(`histories/${strippedPath}`, axiosConfig);
+      const { data: presetQueryData } = await this.axios.get<HistoryPresetResponse>(`histories/${strippedPath}`, axiosConfig);
       //@ts-ignore
       const queryHref = presetQueryData.nodes.find((node) => node.name == query).href as string;
-      const { data } = await this.axiosInstance.get<HistoryQueryResponse>(`histories/${strippedPath}${queryHref}`, axiosConfig);
+      const { data } = await this.axios.get<HistoryQueryResponse>(`histories/${strippedPath}${queryHref}`, axiosConfig);
       return data;
     } else {
       if (query.start) {
@@ -103,7 +103,7 @@ export class HistoryRequestInstance {
         }
       }
 
-      const { data } = await this.axiosInstance.get<HistoryQueryResponse>(`histories/${strippedPath}/~historyQuery/`, {
+      const { data } = await this.axios.get<HistoryQueryResponse>(`histories/${strippedPath}/~historyQuery/`, {
         params: query,
         ...axiosConfig,
       });
@@ -126,7 +126,7 @@ export class HistoryRequestInstance {
     </obj>
     `;
 
-    const { data } = await this.axiosInstance.post<HistoryRollupResponse>(`histories/${strippedPath}/~historyRollup/`, payload, axiosConfig);
+    const { data } = await this.axios.post<HistoryRollupResponse>(`histories/${strippedPath}/~historyRollup/`, payload, axiosConfig);
     return data;
   }
 }
