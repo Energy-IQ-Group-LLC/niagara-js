@@ -42,6 +42,10 @@ export class StandardRequestInstance {
 
     const cache = getUnitCache(this.axios);
 
+    // Cache the *Promise*, not the resolved value.
+    // This ensures concurrent requests for the same unit share a single in-flight
+    // request instead of triggering multiple network calls. Callers `await` the
+    // cached Promise, which resolves once and is reused thereafter.
     let cached = cache.get(unit);
     if (!cached) {
       cached = this.axios
