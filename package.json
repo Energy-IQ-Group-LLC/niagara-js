@@ -1,7 +1,9 @@
 {
-  "name": "niagara-js",
+  "name": "@energy-iq/niagara-js",
   "version": "0.0.1",
-  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "Core Niagara functions",
   "author": "Adam Zimmerman",
   "repository": {
